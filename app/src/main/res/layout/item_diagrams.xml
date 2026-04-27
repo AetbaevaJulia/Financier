@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="6dp"
+    android:layout_marginVertical="8dp"
+    android:background="@color/white">
+
+    <TextView
+        android:id="@+id/text_for_diagram"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:textSize="20sp"
+        android:text="Общие траты"
+        android:layout_marginVertical="10dp">
+    </TextView>
+
+    <ImageView
+        android:id="@+id/image_for_diagrams"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:src="@mipmap/ic_launcher">
+    </ImageView>
+</LinearLayout>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_margin="16dp"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:minHeight="50dp"
+        android:focusable="true">
+
+        <TextView
+            android:id="@+id/date_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.65"
+
+            android:layout_gravity="center"
+
+            android:textSize="20sp"
+
+            android:text="01.01.2026 - 01.02.2026">
+        </TextView>
+
+        <ImageView
+            android:id="@+id/add_new"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.35"
+            android:minHeight="50dp"
+
+            android:layout_gravity="center"
+
+            android:clickable="true"
+            android:src="@drawable/baseline_add_box_24"
+            app:tint="@color/accent">
+        </ImageView>
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_diagrams"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        tools:itemCount="3"
+
+        tools:listitem="@layout/item_diagrams">
+    </androidx.recyclerview.widget.RecyclerView>
+</LinearLayout>
