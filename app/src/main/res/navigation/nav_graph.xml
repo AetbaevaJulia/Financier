@@ -2,12 +2,12 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/startFragment">
+    app:startDestination="@id/mainFragment">
 
     <fragment
-        android:id="@+id/startFragment"
-        android:name="com.example.financier.presenter.fragments.StartFragment"
-        android:label="StartFragment">
+        android:id="@+id/mainFragment"
+        android:name="com.example.financier.presenter.fragments.MainFragment"
+        android:label="MainFragment">
 
     </fragment>
 </navigation>
