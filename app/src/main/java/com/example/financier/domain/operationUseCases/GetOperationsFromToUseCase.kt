@@ -1,6 +1,6 @@
 package com.example.financier.domain.operationUseCases
 
-import com.example.financier.data.OperationsRepository
+import com.example.financier.data.repositories.OperationsDatabaseRepository
 import com.example.financier.data.model.OperationEntity
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -10,7 +10,7 @@ interface GetOperationsFromToUseCase {
 }
 
 class GetOperationsFromToUseCaseImpl @Inject constructor(
-    private val repository: OperationsRepository
+    private val repository: OperationsDatabaseRepository
 ): GetOperationsFromToUseCase {
     override fun invoke(
         startDateTime: Long,

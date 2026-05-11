@@ -1,11 +1,11 @@
-package com.example.financier.data
+package com.example.financier.data.repositories
 
 import com.example.financier.data.db.OperationsDAO
 import com.example.financier.data.model.OperationEntity
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-interface OperationsRepository {
+interface OperationsDatabaseRepository {
     fun getOperations(): Flow<List<OperationEntity>>
     fun getOperationsFromTo(startDateTime: Long, endDateTime: Long): Flow<List<OperationEntity>>
     fun getOperationsByCategory(category: String): Flow<List<OperationEntity>>
@@ -13,9 +13,9 @@ interface OperationsRepository {
     suspend fun deleteOperation(operationEntity: OperationEntity): Int
 }
 
-class OperationsRepositoryImpl @Inject constructor(
+class OperationsDatabaseRepositoryImpl @Inject constructor(
     private val dao: OperationsDAO
-): OperationsRepository {
+): OperationsDatabaseRepository {
     override fun getOperations(): Flow<List<OperationEntity>> =
         dao.getOperations()
 

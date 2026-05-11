@@ -2,6 +2,7 @@ package com.example.financier.di.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.financier.presenter.viewModels.AuthViewModel
 import com.example.financier.presenter.viewModels.MainViewModel
 import com.example.financier.presenter.viewModels.OperationsInCategoryViewModel
 import com.example.financier.presenter.viewModels.RegularOperationsViewModel
@@ -36,5 +37,12 @@ interface ViewModelModule {
     @ViewModelKey(RegularOperationsViewModel::class)
     fun bindRegularOperationsViewModel(
         viewModel: RegularOperationsViewModel
+    ): ViewModel
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(AuthViewModel::class)
+    fun bindAuthViewModel(
+        viewModel: AuthViewModel
     ): ViewModel
 }

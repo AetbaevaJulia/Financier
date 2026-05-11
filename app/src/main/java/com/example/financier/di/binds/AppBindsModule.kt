@@ -2,6 +2,7 @@ package com.example.financier.di.binds
 
 import android.app.Application
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.room.Room
 import com.example.financier.data.db.FinancierDatabase
 import dagger.Module
@@ -24,5 +25,11 @@ interface AppBindsModule {
                 FinancierDatabase::class.java,
                 "notes.db"
             ).build()
+
+        @Provides
+        @Singleton
+        fun provideSharedPreferences(context: Context): SharedPreferences {
+            return context.getSharedPreferences("financier_prefs", Context.MODE_PRIVATE)
+        }
     }
 }
