@@ -1,7 +1,7 @@
 package com.example.financier.di.binds
 
-import com.example.financier.data.OperationsRepository
-import com.example.financier.data.OperationsRepositoryImpl
+import com.example.financier.data.repositories.OperationsRepository
+import com.example.financier.data.repositories.OperationsRepositoryImpl
 import com.example.financier.domain.operationUseCases.CreateOperationUseCase
 import com.example.financier.domain.operationUseCases.CreateOperationUseCaseImpl
 import com.example.financier.domain.operationUseCases.DeleteOperationUseCase

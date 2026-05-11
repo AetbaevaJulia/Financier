@@ -1,4 +1,4 @@
-package com.example.financier.data
+package com.example.financier.data.repositories
 
 import com.example.financier.data.db.OperationsDAO
 import com.example.financier.data.model.OperationEntity

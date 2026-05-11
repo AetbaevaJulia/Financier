@@ -1,6 +1,6 @@
 package com.example.financier.domain.operationUseCases
 
-import com.example.financier.data.OperationsRepository
+import com.example.financier.data.repositories.OperationsRepository
 import com.example.financier.data.model.OperationEntity
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
