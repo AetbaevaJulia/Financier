@@ -6,14 +6,14 @@ import java.util.UUID
 import javax.inject.Inject
 
 interface OperationsRepository {
-    suspend fun getOperations(statement_id: UUID): List<OperationResponse>
+    suspend fun getOperations(statementId: UUID): List<OperationResponse>?
 }
 
 class OperationsRepositoryImpl @Inject constructor(
     private val service: NetworkService
 ): OperationsRepository {
-    override suspend fun getOperations(statement_id: UUID): List<OperationResponse> {
-        val response = service.getTransactions(statement_id, "")
+    override suspend fun getOperations(statementId: UUID): List<OperationResponse>? {
+        val response = service.getOperations(statementId, "")
         return if (response.isSuccessful)
             return response.body()
         else null

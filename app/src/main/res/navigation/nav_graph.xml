@@ -2,12 +2,34 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/mainFragment">
+    app:startDestination="@id/authFragment">
 
     <fragment
         android:id="@+id/mainFragment"
         android:name="com.example.financier.presenter.fragments.MainFragment"
         android:label="MainFragment">
 
+    </fragment>
+    <fragment
+        android:id="@+id/authFragment"
+        android:name="com.example.financier.presenter.fragments.AuthFragment"
+        android:label="AuthFragment" >
+        <action
+            android:id="@+id/action_authFragment_to_mainFragment"
+            app:destination="@id/mainFragment" />
+        <action
+            android:id="@+id/action_authFragment_to_registerFragment"
+            app:destination="@id/registerFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.example.financier.presenter.fragments.RegisterFragment"
+        android:label="RegisterFragment" >
+        <action
+            android:id="@+id/action_registerFragment_to_mainFragment"
+            app:destination="@id/mainFragment" />
+        <action
+            android:id="@+id/action_registerFragment_to_authFragment"
+            app:destination="@id/authFragment" />
     </fragment>
 </navigation>

@@ -1,16 +1,17 @@
 package com.example.financier.data
 
+import com.example.financier.data.model.AuthResponse
+import com.example.financier.data.model.LoginRequest
 import com.example.financier.data.model.OperationResponse
+import com.example.financier.data.model.RegisterRequest
 import com.example.financier.data.model.StatementResponse
 import com.example.financier.data.model.UploadStatementResponse
-import com.google.android.gms.cloudmessaging.RegisterRequest
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Multipart
-import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
@@ -19,10 +20,10 @@ import java.util.UUID
 interface NetworkService {
     @GET("health")
     suspend fun health(): Map<String, String>
-@POST("/auth/register")
+@POST("auth/register")
     suspend fun register(@Body request: RegisterRequest): Response<AuthResponse>
 
-    @POST("/auth/login")
+    @POST("auth/login")
     suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
 
 
@@ -45,7 +46,7 @@ interface NetworkService {
     ): Response<StatementResponse>
 
     @GET("statements/{statement_id}/transactions")
-    suspend fun getTransactions(
+    suspend fun getOperations(
         @Path("statement_id") statementId: UUID,
         @Header("Authorization") authorization: String
     ): Response<List<OperationResponse>>
@@ -62,17 +63,4 @@ interface NetworkService {
 //        @Body request: FeedbackRequest,
 //        @Header("Authorization") authorization: String
 //    ): Transaction
-import com.example.financier.data.model.AuthResponse
-import com.example.financier.data.model.LoginRequest
-import com.example.financier.data.model.RegisterRequest
-import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.POST
-
-interface NetworkService {
-    @POST("/auth/register")
-    suspend fun register(@Body request: RegisterRequest): Response<AuthResponse>
-
-    @POST("/auth/login")
-    suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
 }

@@ -1,5 +1,6 @@
 package com.example.financier.data.repository
 
+import android.util.Log
 import com.example.financier.data.NetworkService
 import com.example.financier.data.model.AuthResponse
 import com.example.financier.data.model.LoginRequest
@@ -19,11 +20,14 @@ class AuthRepositoryImpl @Inject constructor(
         return try {
             val response = authApi.register(RegisterRequest(email, password))
             if (response.isSuccessful && response.body() != null) {
+                Log.d("logreg", response.body().toString())
                 Result.success(response.body()!!)
             } else {
+                Log.d("Ошибка", response.toString())
                 Result.failure(Exception("Registration failed: ${response.code()}"))
             }
         } catch (e: Exception) {
+            Log.d("Ошибка в кетч", e.message.toString())
             Result.failure(e)
         }
     }
