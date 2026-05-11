@@ -7,16 +7,16 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.financier.R
 import com.example.financier.appComponent
-import com.example.financier.databinding.FragmentStartBinding
+import com.example.financier.databinding.FragmentMainBinding
 import com.example.financier.di.viewModel.ViewModelFactory
 import com.example.financier.presenter.viewModels.MainViewModel
 import dev.androidbroadcast.vbpd.viewBinding
 import javax.inject.Inject
 import kotlin.getValue
 
-class StartFragment : Fragment(R.layout.fragment_start) {
+class MainFragment : Fragment(R.layout.fragment_main) {
 
-    private val binding: FragmentStartBinding by viewBinding(FragmentStartBinding::bind)
+    private val binding: FragmentMainBinding by viewBinding(FragmentMainBinding::bind)
 
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
