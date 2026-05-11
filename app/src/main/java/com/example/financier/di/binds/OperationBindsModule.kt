@@ -1,7 +1,7 @@
 package com.example.financier.di.binds
 
-import com.example.financier.data.OperationsRepository
-import com.example.financier.data.OperationsRepositoryImpl
+import com.example.financier.data.repositories.OperationsDatabaseRepository
+import com.example.financier.data.repositories.OperationsDatabaseRepositoryImpl
 import com.example.financier.domain.operationUseCases.CreateOperationUseCase
 import com.example.financier.domain.operationUseCases.CreateOperationUseCaseImpl
 import com.example.financier.domain.operationUseCases.DeleteOperationUseCase
@@ -21,7 +21,7 @@ interface OperationBindsModule {
 
     @Binds
     @Singleton
-    fun bindOperationsRepository(impl: OperationsRepositoryImpl): OperationsRepository
+    fun bindOperationsRepository(impl: OperationsDatabaseRepositoryImpl): OperationsDatabaseRepository
 
     @Binds
     @Singleton
