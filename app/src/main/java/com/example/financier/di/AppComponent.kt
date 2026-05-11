@@ -2,6 +2,7 @@ package com.example.financier.di
 
 import android.app.Application
 import com.example.financier.di.binds.AppBindsModule
+import com.example.financier.di.binds.NetworkModule
 import com.example.financier.di.viewModel.ViewModelModule
 import com.example.financier.presenter.fragments.MainFragment
 import com.example.financier.presenter.fragments.OperationsInCategoryFragment
@@ -31,6 +32,7 @@ abstract class AppComponent {
 
 @Module(
     includes = [
+        NetworkModule::class,
         AppBindsModule::class,
         ViewModelModule::class
     ]
