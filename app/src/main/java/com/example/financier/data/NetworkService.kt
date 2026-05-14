@@ -4,6 +4,7 @@ import com.example.financier.data.model.AuthResponse
 import com.example.financier.data.model.LoginRequest
 import com.example.financier.data.model.OperationResponse
 import com.example.financier.data.model.RegisterRequest
+import com.example.financier.data.model.Report
 import com.example.financier.data.model.StatementResponse
 import com.example.financier.data.model.UploadStatementResponse
 import okhttp3.MultipartBody
@@ -51,11 +52,11 @@ interface NetworkService {
         @Header("Authorization") authorization: String
     ): Response<List<OperationResponse>>
 
-//    @GET("statements/{statement_id}/report")
-//    suspend fun getReport(
-//        @Path("statement_id") statementId: UUID,
-//        @Header("Authorization") authorization: String
-//    ): AnalyticsReport
+    @GET("statements/{statement_id}/report")
+    suspend fun getReport(
+        @Path("statement_id") statementId: String,
+        @Header("Authorization") authorization: String
+    ): Response<Report>
 
 //    @PATCH("transactions/{transaction_id}/feedback")
 //    suspend fun updateTransactionFeedback(

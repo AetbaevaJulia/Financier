@@ -3,24 +3,33 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="6dp"
+    android:padding="12dp"
     android:layout_marginVertical="8dp"
     android:background="@color/white">
 
     <TextView
-        android:id="@+id/text_for_diagram"
+        android:id="@+id/tv_chart_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"
+        android:text="Название диаграммы" />
 
-        android:textSize="16sp"
-        android:text="Общие траты"
-        android:layout_marginVertical="10dp">
-    </TextView>
-
-    <ImageView
-        android:id="@+id/image_for_diagrams"
+    <!-- Круговая диаграмма -->
+    <com.github.mikephil.charting.charts.PieChart
+        android:id="@+id/pieChart"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:src="@mipmap/ic_launcher">
-    </ImageView>
+        android:minHeight="300dp"
+
+        android:layout_marginBottom="20dp" />
+
+    <!-- Столбчатая диаграмма -->
+    <com.github.mikephil.charting.charts.BarChart
+        android:id="@+id/barChart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="300dp" />
+
 </LinearLayout>

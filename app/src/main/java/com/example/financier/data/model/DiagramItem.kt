@@ -1,9 +1,15 @@
 package com.example.financier.data.model
 
-//TODO: это временнная затычка, нужно переделать под код бека
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.PieEntry
+
+
 data class DiagramItem(
     val id: String,
     val title: String,
     val imageRes: Int? = null,
-    val imageUrl: String? = null
+    val isMain: Boolean = false,           // для общей круговой диаграммы
+    val pieData: List<PieEntry>? = null,   // для PieChart
+    val barData: List<BarEntry>? = null,   // для BarChart
+    val categoryName: String? = null
 )

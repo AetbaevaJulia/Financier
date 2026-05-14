@@ -20,9 +20,9 @@ import com.example.financier.presenter.viewModels.MainViewModel
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.androidbroadcast.vbpd.viewBinding
-import javax.inject.Inject
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.inject.Inject
 
 class MainFragment : Fragment(R.layout.fragment_main) {
 
@@ -31,9 +31,19 @@ class MainFragment : Fragment(R.layout.fragment_main) {
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
 
+    private val viewModel: MainViewModel by viewModels { viewModelFactory }
+
     private val diagramsAdapter = DiagramsAdapter()
 
-    private val viewModel: MainViewModel by viewModels { viewModelFactory }
+    private val pickFileLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.data?.let { uri ->
+                uploadFileToApi(uri)
+            }
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -52,58 +62,32 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         }
     }
 
-    private fun setupObservers() {
-        viewModel.diagrams.observe(viewLifecycleOwner) { list ->
-            diagramsAdapter.submitList(list)
-        }
-
-        viewModel.uploadState.observe(viewLifecycleOwner) { state ->
-            when (state) {
-                is MainViewModel.UploadState.Loading -> {
-                    Toast.makeText(requireContext(), "Загрузка файла...", Toast.LENGTH_SHORT).show()
-                }
-                is MainViewModel.UploadState.Success -> {
-                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
-                }
-                is MainViewModel.UploadState.Error -> {
-                    Toast.makeText(requireContext(), "Ошибка: ${state.message}", Toast.LENGTH_LONG).show()
-                }
-                else -> {}
-            }
-        }
-    }
-
     private fun setupDatePicker() {
         binding.dateText.setOnClickListener {
             showDateRangePicker()
         }
+
+        // Автоматическая установка дат: месяц назад — сегодня
+        val calendar = Calendar.getInstance()
+        val endDate = calendar.time
+        calendar.add(Calendar.MONTH, -1)
+        val startDate = calendar.time
+
+        val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+        binding.dateText.text = "${dateFormat.format(startDate)} - ${dateFormat.format(endDate)}"
     }
 
     private fun showDateRangePicker() {
-        val builder = MaterialDatePicker.Builder.dateRangePicker()
-
-        // Можно задать начальные даты, если нужно
-        // val calendar = Calendar.getInstance()
-        // builder.setSelection(
-        //     Pair(
-        //         calendar.timeInMillis,
-        //         calendar.timeInMillis + 30 * 24 * 60 * 60 * 1000L // +30 дней
-        //     )
-        // )
-
-        val picker = builder.build()
+        val picker = MaterialDatePicker.Builder.dateRangePicker().build()
 
         picker.addOnPositiveButtonClickListener { selection ->
-            val startDate = selection.first?.let { Date(it) }
-            val endDate = selection.second?.let { Date(it) }
+            val startDate = Date(selection.first ?: System.currentTimeMillis())
+            val endDate = Date(selection.second ?: System.currentTimeMillis())
 
             val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-            val dateRangeText = "${dateFormat.format(startDate)} - ${dateFormat.format(endDate)}"
+            binding.dateText.text = "${dateFormat.format(startDate)} - ${dateFormat.format(endDate)}"
 
-            binding.dateText.text = dateRangeText
-
-            // Можно обновить ViewModel
-            // viewModel.updateDateRange(startDate, endDate)
+            viewModel.setDateRange(startDate, endDate)
         }
 
         picker.show(parentFragmentManager, "date_range_picker")
@@ -128,29 +112,55 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
     private fun openFilePicker() {
         val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-            type = "*/*"  // Все типы файлов
+            type = "*/*"
             addCategory(Intent.CATEGORY_OPENABLE)
         }
         pickFileLauncher.launch(intent)
     }
 
-
-    // Для выбора файла
-    private val pickFileLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.data?.let { uri ->
-                uploadFileToApi(uri)
-            }
-        }
-    }
-
     private fun uploadFileToApi(uri: Uri) {
-        // TODO: Реализация отправки файла на API
         viewModel.uploadFile(uri)
     }
 
+    private fun setupObservers() {
+        viewModel.diagrams.observe(viewLifecycleOwner) { list ->
+            diagramsAdapter.submitList(list)
+        }
+
+        viewModel.report.observe(viewLifecycleOwner) { report ->
+            report?.let {
+                Toast.makeText(requireContext(), "Отчёт загружен (${it.totalExpense.toInt()} ₽ расходов)", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is MainViewModel.UiState.Loading ->
+                    Toast.makeText(requireContext(), "Загрузка тестовой выписки...", Toast.LENGTH_SHORT).show()
+
+                is MainViewModel.UiState.Success ->
+                    Toast.makeText(requireContext(), "Тестовая выписка загружена успешно", Toast.LENGTH_SHORT).show()
+
+                is MainViewModel.UiState.Error ->
+                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
+            }
+        }
+
+        viewModel.uploadState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is MainViewModel.UploadState.Loading ->
+                    Toast.makeText(requireContext(), "Загрузка файла...", Toast.LENGTH_SHORT).show()
+
+                is MainViewModel.UploadState.Success ->
+                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
+
+                is MainViewModel.UploadState.Error ->
+                    Toast.makeText(requireContext(), "Ошибка: ${state.message}", Toast.LENGTH_LONG).show()
+
+                MainViewModel.UploadState.Idle -> TODO()
+            }
+        }
+    }
 
     override fun onAttach(context: Context) {
         context.appComponent.inject(this)
