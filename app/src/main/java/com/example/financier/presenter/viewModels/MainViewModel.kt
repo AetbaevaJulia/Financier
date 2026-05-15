@@ -15,6 +15,7 @@ import com.example.financier.data.repositories.StatementRepositoryImpl
 import com.example.financier.domain.operationUseCases.GetStatementOperationsUseCase
 import com.example.financier.domain.operationUseCases.PatchFeedbackUseCase
 import com.example.financier.domain.statementUseCases.GetAllStatementsUseCase
+import com.example.financier.domain.statementUseCases.GetLastReportUseCase
 import com.example.financier.domain.statementUseCases.GetLatestStatementUseCase
 import com.example.financier.domain.statementUseCases.GetReportUseCase
 import com.example.financier.domain.statementUseCases.GetStatementUseCase
@@ -30,7 +31,7 @@ import java.util.Date
 import javax.inject.Inject
 
 class MainViewModel @Inject constructor(
-    private val getLatestStatementUseCase: GetLatestStatementUseCase,
+    private val getLastReportUseCase: GetLastReportUseCase,
     private val getReportUseCase: GetReportUseCase,
     private val uploadStatementUseCase: UploadStatementUseCase,
     private val sharedPreferences: SharedPreferences,
@@ -40,42 +41,9 @@ class MainViewModel @Inject constructor(
     private val patchFeedbackUseCase: PatchFeedbackUseCase
 ) : ViewModel() {
 
-    fun init()  { //TODO это тестовый блок для тестирования всех route
+    fun init()  {
         viewModelScope.launch {
-            Log.d("Тест", "Начало теста")
-
-            val token = sharedPreferences.getString("auth_token", null)
-
-            if (token.isNullOrEmpty()) {
-                _uiState.value = UiState.Error("Пользователь не авторизован")
-                return@launch
-            }
-            Log.d("Тест", "Токен: $token")
-
-            Log.d("Тест", "Получаем все выписки")
-            val statements = getAllStatementsUseCase(token)
-            Log.d("Тест", "Все выписки: ${statements.toString()}")
-
-            Log.d("Тест", "Получаем одну выписку")
-            val statementId = "1cb67309-f573-4461-8627-f2262e06e4ef"
-            val statement = getStatementUseCase(statementId, token)
-            Log.d("Тест", "Выписка: ${statement.toString()}")
-
-            Log.d("Тест", "Получаем операции выписки")
-            val operations = getStatementOperationsUseCase(statementId, token)
-            Log.d("Тест", "Операции выписки: ${operations.toString()}")
-
-            Log.d("Тест", "Получаем отчёт выписки")
-            val report = getReportUseCase(statementId, token)
-            Log.d("Тест", "Отчёт: ${report.toString()}")
-
-            Log.d("Тест", "Меняем фидбек по операции")
-            val updatedOperation = patchFeedbackUseCase(
-                "64f3059c-776d-4ec6-acd0-833c80ad5e9b",
-                FeedbackRequest("Тестовый merchant"),
-                token
-            )
-            Log.d("Тест", "Обновлённая операция: ${updatedOperation.toString()}")
+            loadLastReport()
         }
     }
 
@@ -101,46 +69,43 @@ class MainViewModel @Inject constructor(
     private val _uiState = MutableLiveData<UiState>()
     val uiState: LiveData<UiState> get() = _uiState
 
-    init {
-        // Загружаем начальные данные
-//        loadTestStatementAutomatically()
-    }
-
     /**
      * Автоматически загружает тестовую выписку при открытии MainFragment
      */
-    private fun loadTestStatementAutomatically() {
-//        viewModelScope.launch {
-//            _uiState.value = UiState.Loading
-//
-//            val token = sharedPreferences.getString("auth_token", null)
-//
-//            if (token.isNullOrEmpty()) {
-//                _uiState.value = UiState.Error("Пользователь не авторизован")
-//                return@launch
-//            }
-//
-//            val statement = getLatestStatementUseCase.invoke(token)
-//
-//            if (statement != null) {
-//                loadReport()
-//            } else {
-//                _uiState.value = UiState.Error("Тестовая выписка не найдена")
-//            }
-//        }
-    }
 
-    fun loadReport() {
+    fun loadLastReport(){
         viewModelScope.launch {
-            val reportData = getReportUseCase.invoke(statementId.value!!, getToken())
-
-            Log.d("Загруженный репорт !!!!!!!!!", reportData.toString())
+            val reportData = getLastReportUseCase.invoke()
 
             if (reportData != null) {
                 _report.postValue(reportData)
                 _uiState.value = UiState.Success(reportData)
 
-                // Преобразуем Report в список диаграмм для RecyclerView
+                val diagramsList = convertReportToDiagrams(reportData)
+                _diagrams.postValue(diagramsList)
+            } else {
+                _uiState.value = UiState.Error("Не удалось загрузить отчёт")
+            }
+        }
+    }
+
+    fun loadReport(statementId: String? = null) {
+        viewModelScope.launch {
+            val id = statementId ?: this@MainViewModel.statementId.value
+            if (id.isNullOrBlank()) {
+                _uiState.value = UiState.Error("Не найден ID выписки")
+                return@launch
+            }
+
+            val token = getToken()
+            val reportData = getReportUseCase.invoke(id, token)
+
+            Log.d("Загруженный репорт", reportData.toString())
+
+            if (reportData != null) {
+                _report.postValue(reportData)
+                _uiState.value = UiState.Success(reportData)
+
                 val diagramsList = convertReportToDiagrams(reportData)
                 _diagrams.postValue(diagramsList)
             } else {
@@ -155,41 +120,39 @@ class MainViewModel @Inject constructor(
     private fun convertReportToDiagrams(report: Report): List<DiagramItem> {
         val list = mutableListOf<DiagramItem>()
 
-        // Защита от null
-        val categories = report.expenseByCategory ?: emptyMap()
+        val categories = report.expenseByCategory
 
-        // 1. Главная круговая диаграмма
+        if (categories.isEmpty()) {
+            list.add(DiagramItem(id = "empty", title = "Нет данных", isMain = true))
+            return list
+        }
+
+        // === 1. Большая круговая диаграмма (первый элемент) ===
         val pieEntries = categories.map { (category, amount) ->
             PieEntry(amount.toFloat(), category)
         }
 
         list.add(
             DiagramItem(
-                id = "main_total",
-                title = "Общие траты",
+                id = "main_pie",
+                title = "Расходы по категориям",
                 isMain = true,
                 pieData = pieEntries
             )
         )
 
-        // 2. Диаграммы по категориям
+        // === 2. Столбчатые диаграммы по категориям ===
         categories.forEach { (category, amount) ->
             val barEntries = listOf(BarEntry(0f, amount.toFloat()))
 
             list.add(
                 DiagramItem(
-                    id = "category_$category",
-                    title = category,
-                    isMain = false,
+                    id = "bar_$category",
+                    title = category.replaceFirstChar { it.uppercaseChar() },
                     barData = barEntries,
                     categoryName = category
                 )
             )
-        }
-
-        // Если нет категорий — добавляем заглушку
-        if (list.isEmpty()) {
-            list.add(DiagramItem(id = "empty", title = "Нет данных по расходам", isMain = true))
         }
 
         return list

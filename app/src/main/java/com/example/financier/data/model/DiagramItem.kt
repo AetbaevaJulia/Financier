@@ -11,5 +11,6 @@ data class DiagramItem(
     val isMain: Boolean = false,           // для общей круговой диаграммы
     val pieData: List<PieEntry>? = null,   // для PieChart
     val barData: List<BarEntry>? = null,   // для BarChart
-    val categoryName: String? = null
+    val categoryName: String? = null,
+    
 )

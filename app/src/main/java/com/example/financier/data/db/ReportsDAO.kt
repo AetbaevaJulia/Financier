@@ -28,7 +28,7 @@ interface ReportsDAO {
 
     @Transaction
     @Query("SELECT * FROM ${ReportEntity.TABLE} " +
-            "ORDER BY Id " +
+            "ORDER BY Id DESC " +
             "LIMIT 1")
     suspend fun getLastReport(): FullReport?
 }

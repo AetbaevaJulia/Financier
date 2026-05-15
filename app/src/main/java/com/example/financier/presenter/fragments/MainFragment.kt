@@ -70,63 +70,64 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         setupAddNewButton()
         setupObservers()
 
+        viewModel.init()
     }
 
-    private fun showPieChart() {
-        val pieChart = binding.pieChart
-
-        viewModel.report.observe(viewLifecycleOwner) { report ->
-            report?.let { r ->
-                val categories = ArrayList<PieEntry>().apply {
-                    r.expenseByCategory?.forEach { (category, amount) ->
-                        add(PieEntry(amount.toFloat(), category))
-                    }
-                }
-
-                val pieDataSet = PieDataSet(categories, "").apply {
-                    colors = chartColors
-                    selectionShift = 8f
-                    valueTextSize = 13f
-                    valueTextColor = Color.WHITE
-                    valueFormatter = PercentFormatter(pieChart)
-                }
-
-                val pieData = PieData(pieDataSet).apply {
-                    setDrawValues(true)
-                }
-
-                pieChart.apply {
-                    data = pieData
-
-                    isDrawHoleEnabled = true
-                    setHoleColor(Color.WHITE)
-                    transparentCircleRadius = 62f
-
-                    // Центр
-                    setCenterTextSize(14f)
-                    setCenterTextColor(Color.BLACK)
-                    centerText = "Всего расходов\n${r.totalExpense.toInt()} ₽"
-                    setDrawEntryLabels(false)
-
-                    // Легенда
-                    legend.apply {
-                        isEnabled = true
-                        verticalAlignment = Legend.LegendVerticalAlignment.BOTTOM
-                        horizontalAlignment = Legend.LegendHorizontalAlignment.CENTER
-                        orientation = Legend.LegendOrientation.HORIZONTAL
-                        textSize = 13f
-                        form = Legend.LegendForm.CIRCLE
-                        formSize = 12f
-                        formToTextSpace = 8f
-                        isWordWrapEnabled = true
-                    }
-
-                    description.isEnabled = false
-                    invalidate()
-                }
-            }
-        }
-    }
+//    private fun showPieChart() {
+//        val pieChart = binding.pieChart
+//
+//        viewModel.report.observe(viewLifecycleOwner) { report ->
+//            report?.let { r ->
+//                val categories = ArrayList<PieEntry>().apply {
+//                    r.expenseByCategory?.forEach { (category, amount) ->
+//                        add(PieEntry(amount.toFloat(), category))
+//                    }
+//                }
+//
+//                val pieDataSet = PieDataSet(categories, "").apply {
+//                    colors = chartColors
+//                    selectionShift = 8f
+//                    valueTextSize = 13f
+//                    valueTextColor = Color.WHITE
+//                    valueFormatter = PercentFormatter(pieChart)
+//                }
+//
+//                val pieData = PieData(pieDataSet).apply {
+//                    setDrawValues(true)
+//                }
+//
+//                pieChart.apply {
+//                    data = pieData
+//
+//                    isDrawHoleEnabled = true
+//                    setHoleColor(Color.WHITE)
+//                    transparentCircleRadius = 62f
+//
+//                    // Центр
+//                    setCenterTextSize(14f)
+//                    setCenterTextColor(Color.BLACK)
+//                    centerText = "Всего расходов\n${r.totalExpense.toInt()} ₽"
+//                    setDrawEntryLabels(false)
+//
+//                    // Легенда
+//                    legend.apply {
+//                        isEnabled = true
+//                        verticalAlignment = Legend.LegendVerticalAlignment.BOTTOM
+//                        horizontalAlignment = Legend.LegendHorizontalAlignment.CENTER
+//                        orientation = Legend.LegendOrientation.HORIZONTAL
+//                        textSize = 13f
+//                        form = Legend.LegendForm.CIRCLE
+//                        formSize = 12f
+//                        formToTextSpace = 8f
+//                        isWordWrapEnabled = true
+//                    }
+//
+//                    description.isEnabled = false
+//                    invalidate()
+//                }
+//            }
+//        }
+//    }
 
     private fun setupRecyclerView() {
         binding.recyclerDiagrams.apply {
@@ -198,13 +199,17 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
     private fun setupObservers() {
         viewModel.diagrams.observe(viewLifecycleOwner) { list ->
-            diagramsAdapter.submitList(list)
+            if (list.isNotEmpty()) {
+                diagramsAdapter.submitList(list)
+                binding.recyclerDiagrams.scrollToPosition(0) // прокрутка к первой диаграмме
+            }
         }
 
         viewModel.report.observe(viewLifecycleOwner) { report ->
             report?.let {
-                Toast.makeText(requireContext(), "Отчёт загружен (${it.totalExpense.toInt()} ₽ расходов)", Toast.LENGTH_SHORT).show()
-                showPieChart()
+                Toast.makeText(requireContext(),
+                    "Отчёт загружен (${it.totalExpense.toInt()} ₽)",
+                    Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -216,24 +221,22 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                 is MainViewModel.UploadState.Success ->
                     Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
 
-                is MainViewModel.UploadState.Error -> {
-                    Log.d("Ошибка", state.message)
+                is MainViewModel.UploadState.Error ->
                     Toast.makeText(requireContext(), "Ошибка: ${state.message}", Toast.LENGTH_LONG).show()
-                }
 
-                MainViewModel.UploadState.Idle -> TODO()
+                else -> {}
             }
         }
 
         viewModel.statementId.observe(viewLifecycleOwner) { id ->
-            if(id != null){
+            if (!id.isNullOrBlank()) {
                 viewModel.waitingReport(id)
             }
         }
 
-        viewModel.statementStatus.observe(viewLifecycleOwner){ status ->
-            if(status == "report_ready"){
-                viewModel.loadReport()
+        viewModel.statementStatus.observe(viewLifecycleOwner) { status ->
+            if (status == "report_ready") {
+                viewModel.loadReport()           // теперь без параметров
             }
         }
     }

@@ -25,24 +25,56 @@ class DiagramsAdapter : ListAdapter<DiagramItem, DiagramsAdapter.DiagramViewHold
         fun bind(item: DiagramItem) {
             binding.tvChartTitle.text = item.title
 
+            val chartColors: List<Int> = listOf(
+                0xFF558EDE.toInt(), 0xFFED6154.toInt(), 0xFFAAB1B9.toInt(),
+                0xFFA5C26E.toInt(), 0xFF9074BE.toInt(), 0xFFFFAA40.toInt(),
+                0xFF4DB6C9.toInt()
+            )
+
             if (item.isMain && item.pieData != null) {
-                // Круговая диаграмма
+                binding.pieChart.isVisible = true
                 binding.barChart.isVisible = false
 
                 val pieDataSet = PieDataSet(item.pieData, "").apply {
-                    colors = ColorTemplate.MATERIAL_COLORS.toList()
-                    sliceSpace = 3f
-                    selectionShift = 5f
-                    valueTextSize = 12f
+                    colors = chartColors
+                    selectionShift = 8f
+                    valueTextSize = 13f
                     valueTextColor = Color.WHITE
+                    valueFormatter = PercentFormatter(binding.pieChart)
                 }
 
-                val pieData = PieData(pieDataSet).apply {
-                    setDrawValues(true)
+                val pieData = PieData(pieDataSet)
+
+                binding.pieChart.apply {
+                    data = pieData
+                    isDrawHoleEnabled = true
+                    setHoleColor(Color.WHITE)
+                    holeRadius = 52f
+                    transparentCircleRadius = 58f
+
+                    setCenterTextSize(15f)
+                    centerText = "Всего расходов\n${item.title}" // можно улучшить позже
+
+                    setDrawEntryLabels(false)
+
+                    legend.apply {
+                        isEnabled = true
+                        verticalAlignment = Legend.LegendVerticalAlignment.BOTTOM
+                        horizontalAlignment = Legend.LegendHorizontalAlignment.CENTER
+                        orientation = Legend.LegendOrientation.HORIZONTAL
+                        isWordWrapEnabled = true
+                        textSize = 13f
+                        formSize = 11f
+                        xEntrySpace = 12f
+                        yEntrySpace = 8f
+                    }
+
+                    description.isEnabled = false
+                    invalidate()           // ← КРИТИЧНО!
                 }
 
             } else if (item.barData != null) {
-                // Столбчатая диаграмма
+                binding.pieChart.isVisible = false
                 binding.barChart.isVisible = true
 
                 val barDataSet = BarDataSet(item.barData, item.categoryName ?: item.title).apply {
@@ -51,9 +83,7 @@ class DiagramsAdapter : ListAdapter<DiagramItem, DiagramsAdapter.DiagramViewHold
                     valueTextColor = Color.BLACK
                 }
 
-                val barData = BarData(barDataSet).apply {
-                    barWidth = 0.7f
-                }
+                val barData = BarData(barDataSet).apply { barWidth = 0.7f }
 
                 binding.barChart.apply {
                     data = barData
@@ -70,8 +100,7 @@ class DiagramsAdapter : ListAdapter<DiagramItem, DiagramsAdapter.DiagramViewHold
                     }
 
                     setDrawValueAboveBar(true)
-                    setExtraOffsets(0f, 0f, 0f, 10f)
-                    invalidate()
+                    invalidate()           // ← тоже важно
                 }
             }
         }
