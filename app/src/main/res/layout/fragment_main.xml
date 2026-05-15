@@ -19,6 +19,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.65"
+            android:minHeight="48dp"
 
             android:layout_gravity="center"
             android:clickable="true"
@@ -43,6 +44,13 @@
             app:tint="@color/accent">
         </ImageView>
     </LinearLayout>
+
+    <com.github.mikephil.charting.charts.PieChart
+        android:id="@+id/pieChart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="400dp"
+        android:layout_marginBottom="20dp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_diagrams"

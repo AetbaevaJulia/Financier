@@ -3,12 +3,14 @@ package com.example.financier.presenter.fragments
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import com.github.mikephil.charting.formatter.PercentFormatter
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,6 +20,10 @@ import com.example.financier.databinding.FragmentMainBinding
 import com.example.financier.di.viewModel.ViewModelFactory
 import com.example.financier.presenter.adapters.DiagramsAdapter
 import com.example.financier.presenter.viewModels.MainViewModel
+import com.github.mikephil.charting.components.Legend
+import com.github.mikephil.charting.data.PieData
+import com.github.mikephil.charting.data.PieDataSet
+import com.github.mikephil.charting.data.PieEntry
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.androidbroadcast.vbpd.viewBinding
@@ -35,6 +41,16 @@ class MainFragment : Fragment(R.layout.fragment_main) {
     private val viewModel: MainViewModel by viewModels { viewModelFactory }
 
     private val diagramsAdapter = DiagramsAdapter()
+
+    private val chartColors: List<Int> = listOf(
+    0xFF558EDE.toInt(),  // blue
+    0xFFED6154.toInt(),  // red
+    0xFFAAB1B9.toInt(),  // grey
+    0xFFA5C26E.toInt(),  // green
+    0xFF9074BE.toInt(),  // purple
+    0xFFFFAA40.toInt(),  // orange
+    0xFF4DB6C9.toInt()   // light_blue
+    )
 
     private val pickFileLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -54,7 +70,62 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         setupAddNewButton()
         setupObservers()
 
-        viewModel.init() //TODO запуск тестового блока
+    }
+
+    private fun showPieChart() {
+        val pieChart = binding.pieChart
+
+        viewModel.report.observe(viewLifecycleOwner) { report ->
+            report?.let { r ->
+                val categories = ArrayList<PieEntry>().apply {
+                    r.expenseByCategory?.forEach { (category, amount) ->
+                        add(PieEntry(amount.toFloat(), category))
+                    }
+                }
+
+                val pieDataSet = PieDataSet(categories, "").apply {
+                    colors = chartColors
+                    selectionShift = 8f
+                    valueTextSize = 13f
+                    valueTextColor = Color.WHITE
+                    valueFormatter = PercentFormatter(pieChart)
+                }
+
+                val pieData = PieData(pieDataSet).apply {
+                    setDrawValues(true)
+                }
+
+                pieChart.apply {
+                    data = pieData
+
+                    isDrawHoleEnabled = true
+                    setHoleColor(Color.WHITE)
+                    transparentCircleRadius = 62f
+
+                    // Центр
+                    setCenterTextSize(14f)
+                    setCenterTextColor(Color.BLACK)
+                    centerText = "Всего расходов\n${r.totalExpense.toInt()} ₽"
+                    setDrawEntryLabels(false)
+
+                    // Легенда
+                    legend.apply {
+                        isEnabled = true
+                        verticalAlignment = Legend.LegendVerticalAlignment.BOTTOM
+                        horizontalAlignment = Legend.LegendHorizontalAlignment.CENTER
+                        orientation = Legend.LegendOrientation.HORIZONTAL
+                        textSize = 13f
+                        form = Legend.LegendForm.CIRCLE
+                        formSize = 12f
+                        formToTextSpace = 8f
+                        isWordWrapEnabled = true
+                    }
+
+                    description.isEnabled = false
+                    invalidate()
+                }
+            }
+        }
     }
 
     private fun setupRecyclerView() {
@@ -133,19 +204,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         viewModel.report.observe(viewLifecycleOwner) { report ->
             report?.let {
                 Toast.makeText(requireContext(), "Отчёт загружен (${it.totalExpense.toInt()} ₽ расходов)", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        viewModel.uiState.observe(viewLifecycleOwner) { state ->
-            when (state) {
-                is MainViewModel.UiState.Loading ->
-                    Toast.makeText(requireContext(), "Загрузка тестовой выписки...", Toast.LENGTH_SHORT).show()
-
-                is MainViewModel.UiState.Success ->
-                    Toast.makeText(requireContext(), "Тестовая выписка загружена успешно", Toast.LENGTH_SHORT).show()
-
-                is MainViewModel.UiState.Error ->
-                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
+                showPieChart()
             }
         }
 
@@ -163,6 +222,18 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                 }
 
                 MainViewModel.UploadState.Idle -> TODO()
+            }
+        }
+
+        viewModel.statementId.observe(viewLifecycleOwner) { id ->
+            if(id != null){
+                viewModel.waitingReport(id)
+            }
+        }
+
+        viewModel.statementStatus.observe(viewLifecycleOwner){ status ->
+            if(status == "report_ready"){
+                viewModel.loadReport()
             }
         }
     }

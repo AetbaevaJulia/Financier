@@ -18,7 +18,7 @@ data class StatementResponse(
     @SerializedName("bank")
     val bank: String = "sber",
     @SerializedName("status")
-    val status: StatementStatus,
+    val status: String,
     @SerializedName("error_code")
     val errorCode: String? = null,
     @SerializedName("error_message")

@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.financier.data.model.DiagramItem
 import com.example.financier.data.model.FeedbackRequest
 import com.example.financier.data.model.Report
+import com.example.financier.data.repositories.StatementRepositoryImpl
 import com.example.financier.domain.operationUseCases.GetStatementOperationsUseCase
 import com.example.financier.domain.operationUseCases.PatchFeedbackUseCase
 import com.example.financier.domain.statementUseCases.GetAllStatementsUseCase
@@ -102,44 +103,46 @@ class MainViewModel @Inject constructor(
 
     init {
         // Загружаем начальные данные
-        loadTestStatementAutomatically()
+//        loadTestStatementAutomatically()
     }
 
     /**
      * Автоматически загружает тестовую выписку при открытии MainFragment
      */
     private fun loadTestStatementAutomatically() {
-        viewModelScope.launch {
-            _uiState.value = UiState.Loading
-
-            val token = sharedPreferences.getString("auth_token", null)
-
-            if (token.isNullOrEmpty()) {
-                _uiState.value = UiState.Error("Пользователь не авторизован")
-                return@launch
-            }
-
-            val statement = getLatestStatementUseCase.invoke(token)
-
-            if (statement != null) {
-                loadReport(statement.id.toString(), token)
-            } else {
-                _uiState.value = UiState.Error("Тестовая выписка не найдена")
-            }
-        }
+//        viewModelScope.launch {
+//            _uiState.value = UiState.Loading
+//
+//            val token = sharedPreferences.getString("auth_token", null)
+//
+//            if (token.isNullOrEmpty()) {
+//                _uiState.value = UiState.Error("Пользователь не авторизован")
+//                return@launch
+//            }
+//
+//            val statement = getLatestStatementUseCase.invoke(token)
+//
+//            if (statement != null) {
+//                loadReport()
+//            } else {
+//                _uiState.value = UiState.Error("Тестовая выписка не найдена")
+//            }
+//        }
     }
 
-    private fun loadReport(statementId: String, token: String) {
+    fun loadReport() {
         viewModelScope.launch {
-            val reportData = getReportUseCase.invoke(statementId, token)
+            val reportData = getReportUseCase.invoke(statementId.value!!, getToken())
+
+            Log.d("Загруженный репорт !!!!!!!!!", reportData.toString())
 
             if (reportData != null) {
-                _report.value = reportData
+                _report.postValue(reportData)
                 _uiState.value = UiState.Success(reportData)
 
                 // Преобразуем Report в список диаграмм для RecyclerView
                 val diagramsList = convertReportToDiagrams(reportData)
-                _diagrams.value = diagramsList
+                _diagrams.postValue(diagramsList)
             } else {
                 _uiState.value = UiState.Error("Не удалось загрузить отчёт")
             }
@@ -200,6 +203,12 @@ class MainViewModel @Inject constructor(
         _selectedEndDate.value = endDate
     }
 
+    private val _statementId = MutableLiveData<String?>()
+    val statementId: LiveData<String?> get() = _statementId
+
+    private val _statementStatus = MutableLiveData<String?>()
+    val statementStatus: LiveData<String?> get() = _statementStatus
+
     /**
      * Загрузка файла на сервер
      */
@@ -209,21 +218,48 @@ class MainViewModel @Inject constructor(
 
             try {
 //                kotlinx.coroutines.delay(1500)
-                val token = sharedPreferences.getString("auth_token", null)
-
-                if (token.isNullOrEmpty()) {
-                    _uiState.value = UiState.Error("Пользователь не авторизован")
-                    return@launch
-                }
+                val token = getToken()
 
                 val uploadedStatement = uploadStatementUseCase(uri, token)
                 Log.d("Загруженный statement", uploadedStatement.toString())
+
+                _statementId.postValue(uploadedStatement?.statementId.toString())
+                _statementStatus.postValue(uploadedStatement?.status.toString())
 
                 _uploadState.value = UploadState.Success("Файл успешно загружен")
             } catch (e: Exception) {
                 _uploadState.value = UploadState.Error(e.message ?: "Ошибка загрузки файла")
             }
         }
+    }
+
+    fun waitingReport(statementId : String){
+        viewModelScope.launch {
+            try{
+                while (_statementStatus.value != "report_ready") {
+                    kotlinx.coroutines.delay(3000)
+                    var statement = getStatementUseCase(statementId, getToken())
+                    if (statement?.status == "report_ready") {
+                        _statementStatus.postValue("report_ready")
+                    }
+                    else if (statement?.status == "failed") {
+                        throw Exception("статус failed")
+                    }
+                }
+            } catch (e: Exception) {
+                _uploadState.value = UploadState.Error(e.message ?: "Ошибка получения отчета")
+            }
+        }
+    }
+
+    private fun getToken() : String {
+            val token = sharedPreferences.getString("auth_token", null)
+
+            if (token.isNullOrEmpty()) {
+                _uiState.value = UiState.Error("Пользователь не авторизован")
+                throw Exception("Беда с токеном")
+            }
+            return token
     }
 
     // Состояния загрузки файла
