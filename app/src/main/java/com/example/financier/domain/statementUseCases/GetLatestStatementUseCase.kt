@@ -1,40 +1,18 @@
 package com.example.financier.domain.statementUseCases
 
-import android.content.SharedPreferences
+import com.example.financier.data.mappers.toResponse
 import com.example.financier.data.model.StatementResponse
-import com.example.financier.data.repositories.StatementRepository
-import java.util.UUID
+import com.example.financier.data.repositories.StatementDatabaseRepository
 import javax.inject.Inject
 
 interface GetLatestStatementUseCase {
-    suspend operator fun invoke(token: String): StatementResponse?
+    suspend operator fun invoke(): StatementResponse?
 }
 
 class GetLatestStatementUseCaseImpl @Inject constructor(
-    private val repository: StatementRepository,
-    private val sharedPreferences: SharedPreferences
+    private val databaseRepository: StatementDatabaseRepository
 ) : GetLatestStatementUseCase {
 
-    private val testStatementId = "ba7a43b5-6455-4f2f-9dc9-4681ada74364"
-
-    override suspend fun invoke(token: String): StatementResponse? {
-        // Для теста, это фейковый StatementResponse
-
-        val userIdString = sharedPreferences.getString("user_id", null)
-        val userId = if (!userIdString.isNullOrEmpty()) {
-            UUID.fromString(userIdString)
-        } else {
-            UUID.randomUUID() // fallback
-        }
-
-        return StatementResponse(
-            id = java.util.UUID.fromString(testStatementId),
-            userId = userId,
-            filename = "test_statement_recommendations.pdf",
-            bank = "sber",
-            status = "report_ready",
-            createdAt = java.time.LocalDateTime.now().minusDays(5).toString(),
-            updatedAt = java.time.LocalDateTime.now().toString()
-        )
-    }
+    override suspend fun invoke(): StatementResponse? =
+        databaseRepository.getLastStatement()?.toResponse()
 }

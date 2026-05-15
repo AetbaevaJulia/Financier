@@ -17,8 +17,8 @@ interface OperationsDAO {
             "WHERE category = :category")
     fun getOperationsByCategory(category: String): Flow<List<OperationEntity>>
 
-    @Query("SELECT * FROM ${ OperationEntity.TABLE } " +
-            "WHERE dateTime BETWEEN :startDateTime AND :endDateTime")
+    @Query("SELECT * FROM ${OperationEntity.TABLE} " +
+            "WHERE operationDate BETWEEN :startDateTime AND :endDateTime")
     fun getOperationsFromTo(startDateTime: Long, endDateTime: Long): Flow<List<OperationEntity>>
 
     @Upsert

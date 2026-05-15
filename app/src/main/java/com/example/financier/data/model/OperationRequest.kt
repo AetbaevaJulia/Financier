@@ -3,11 +3,9 @@ package com.example.financier.data.model
 import com.example.financier.enums.ClassificationSource
 import com.example.financier.enums.OperationType
 import com.google.gson.annotations.SerializedName
-import kotlinx.serialization.Serializable
-import java.time.LocalDate
 import java.util.UUID
 
-data class OperationResponse(
+data class OperationRequest(
     @SerializedName("id")
     val operationId: UUID,
     @SerializedName("statement_id")
@@ -37,11 +35,11 @@ data class OperationResponse(
     @SerializedName("subcategory")
     val subcategory: String? = null,
     @SerializedName("operation_type")
-    val operationType: OperationType,
+    val operationType: String,
     @SerializedName("balance_after")
     val balanceAfter: Double? = null,
     @SerializedName("classification_source")
-    val classificationSource: ClassificationSource,
+    val classificationSource: String,
     @SerializedName("confidence")
     val confidence: Double = 0.0
 )

@@ -1,5 +1,7 @@
 package com.example.financier.di.binds
 
+import com.example.financier.data.db.FinancierDatabase
+import com.example.financier.data.db.OperationsDAO
 import com.example.financier.data.repositories.OperationsDatabaseRepository
 import com.example.financier.data.repositories.OperationsDatabaseRepositoryImpl
 import com.example.financier.data.repositories.OperationsRepository
@@ -20,6 +22,7 @@ import com.example.financier.domain.operationUseCases.GetStatementOperationsUseC
 import com.example.financier.domain.operationUseCases.GetStatementOperationsUseCaseImpl
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import javax.inject.Singleton
 
 @Module
@@ -60,4 +63,14 @@ interface OperationBindsModule {
     @Binds
     @Singleton
     fun bindPatchFeedbackUseCase(impl: PatchFeedbackUseCaseImpl): PatchFeedbackUseCase
+
+    companion object {
+
+        @Provides
+        @Singleton
+        fun provideOperationsDAO (
+            db: FinancierDatabase
+        ): OperationsDAO =
+            db.operationsDAO
+    }
 }

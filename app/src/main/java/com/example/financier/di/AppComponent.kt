@@ -5,6 +5,7 @@ import com.example.financier.di.binds.AppBindsModule
 import com.example.financier.di.binds.AuthBindsModule
 import com.example.financier.di.binds.NetworkModule
 import com.example.financier.di.binds.OperationBindsModule
+import com.example.financier.di.binds.ReportBindsModule
 import com.example.financier.di.binds.StatementBindsModule
 import com.example.financier.di.viewModel.ViewModelModule
 import com.example.financier.presenter.fragments.AuthFragment
@@ -44,7 +45,8 @@ abstract class AppComponent {
         ViewModelModule::class,
         OperationBindsModule::class,
         AuthBindsModule::class,
-        StatementBindsModule::class
+        StatementBindsModule::class,
+        ReportBindsModule::class
     ]
 )
 class AppModule

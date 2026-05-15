@@ -8,7 +8,7 @@ import java.util.UUID
 
 data class StatementResponse(
     @SerializedName("id")
-    val id: UUID,
+    val statementId: UUID,
     @SerializedName("user_id")
     val userId: UUID,
     @SerializedName("filename")
@@ -28,4 +28,3 @@ data class StatementResponse(
     @SerializedName("updated_at")
     val updatedAt: String
 )
-

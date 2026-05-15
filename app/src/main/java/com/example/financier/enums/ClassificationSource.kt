@@ -1,12 +1,16 @@
 package com.example.financier.enums
 
-import kotlinx.serialization.Serializable
+import com.google.gson.annotations.SerializedName
 
-@Serializable
 enum class ClassificationSource {
+    @SerializedName("bank")
     BANK,
+    @SerializedName("rules")
     RULES,
+    @SerializedName("user")
     USER,
+    @SerializedName("ai")
     AI,
+    @SerializedName("unknown")
     UNKNOWN
 }
