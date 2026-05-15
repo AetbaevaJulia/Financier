@@ -24,7 +24,7 @@ interface AppBindsModule {
             Room.databaseBuilder(
                 context,
                 FinancierDatabase::class.java,
-                "notes.db"
+                "financier.db"
             ).build()
 
         @Provides

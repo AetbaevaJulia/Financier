@@ -14,6 +14,7 @@ import com.example.financier.data.model.Report
 import com.example.financier.domain.operationUseCases.GetStatementOperationsUseCase
 import com.example.financier.domain.operationUseCases.PatchFeedbackUseCase
 import com.example.financier.domain.statementUseCases.GetAllStatementsUseCase
+import com.example.financier.domain.statementUseCases.GetLastReportUseCase
 import com.example.financier.domain.statementUseCases.GetLatestStatementUseCase
 import com.example.financier.domain.statementUseCases.GetReportUseCase
 import com.example.financier.domain.statementUseCases.GetStatementUseCase
@@ -36,7 +37,8 @@ class MainViewModel @Inject constructor(
     private val getAllStatementsUseCase: GetAllStatementsUseCase,
     private val getStatementUseCase: GetStatementUseCase,
     private val getStatementOperationsUseCase: GetStatementOperationsUseCase,
-    private val patchFeedbackUseCase: PatchFeedbackUseCase
+    private val patchFeedbackUseCase: PatchFeedbackUseCase,
+    private val getLastReportUseCase: GetLastReportUseCase
 ) : ViewModel() {
 
     fun init()  { //TODO это тестовый блок для тестирования всех route
@@ -64,9 +66,9 @@ class MainViewModel @Inject constructor(
             val operations = getStatementOperationsUseCase(statementId, token)
             Log.d("Тест", "Операции выписки: ${operations.toString()}")
 
-            Log.d("Тест", "Получаем отчёт выписки")
-            val report = getReportUseCase(statementId, token)
-            Log.d("Тест", "Отчёт: ${report.toString()}")
+//            Log.d("Тест", "Получаем отчёт выписки")
+//            val report = getReportUseCase(statementId, token)
+//            Log.d("Тест", "Отчёт: ${report.toString()}")
 
             Log.d("Тест", "Меняем фидбек по операции")
             val updatedOperation = patchFeedbackUseCase(
@@ -75,6 +77,10 @@ class MainViewModel @Inject constructor(
                 token
             )
             Log.d("Тест", "Обновлённая операция: ${updatedOperation.toString()}")
+
+            Log.d("Тест", "Получаем последний отчёт")
+            val lastReport = getLastReportUseCase()
+            Log.d("Тест", "Последний отчёт: ${lastReport.toString()}")
         }
     }
 
@@ -119,10 +125,10 @@ class MainViewModel @Inject constructor(
                 return@launch
             }
 
-            val statement = getLatestStatementUseCase.invoke(token)
+            val statement = getLatestStatementUseCase.invoke()
 
             if (statement != null) {
-                loadReport(statement.id.toString(), token)
+                loadReport(statement.statementId.toString(), token)
             } else {
                 _uiState.value = UiState.Error("Тестовая выписка не найдена")
             }

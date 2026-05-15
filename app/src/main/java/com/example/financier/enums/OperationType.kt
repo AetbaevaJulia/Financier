@@ -1,15 +1,22 @@
 package com.example.financier.enums
 
-import kotlinx.serialization.Serializable
+import com.google.gson.annotations.SerializedName
 
-@Serializable
 enum class OperationType {
+    @SerializedName("income")
     INCOME,
+    @SerializedName("expense")
     EXPENSE,
+    @SerializedName("transfer")
     TRANSFER,
+    @SerializedName("refund")
     REFUND,
+    @SerializedName("fee")
     FEE,
+    @SerializedName("cash_withdrawal")
     CASH_WITHDRAWAL,
+    @SerializedName("cashback")
     CASHBACK,
+    @SerializedName("unknown")
     UNKNOWN
 }

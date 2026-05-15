@@ -12,6 +12,7 @@ import javax.inject.Singleton
 
 @Module
 interface AuthBindsModule {
+
     @Binds
     @Singleton
     fun bindAuthRepository(impl: AuthRepositoryImpl): AuthRepository
