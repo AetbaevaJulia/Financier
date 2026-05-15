@@ -7,13 +7,11 @@ import com.example.financier.data.repositories.StatementRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okio.BufferedSink
 import okio.source
-import java.io.File
 import java.io.IOException
 import javax.inject.Inject
 

@@ -22,7 +22,7 @@ import java.util.UUID
 
 interface NetworkService {
 
-    @GET("health")
+    @GET("/health")
     suspend fun health(): Map<String, String>
 
     @POST("auth/register")
