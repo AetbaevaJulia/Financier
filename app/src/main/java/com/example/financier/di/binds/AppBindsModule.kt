@@ -1,6 +1,7 @@
 package com.example.financier.di.binds
 
 import android.app.Application
+import android.content.ContentResolver
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.room.Room
@@ -30,6 +31,12 @@ interface AppBindsModule {
         @Singleton
         fun provideSharedPreferences(context: Context): SharedPreferences {
             return context.getSharedPreferences("financier_prefs", Context.MODE_PRIVATE)
+        }
+
+        @Provides
+        @Singleton
+        fun provideContentResolver(application: Application): ContentResolver {
+            return application.contentResolver
         }
     }
 }

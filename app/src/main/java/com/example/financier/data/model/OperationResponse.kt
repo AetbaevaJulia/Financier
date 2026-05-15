@@ -2,28 +2,46 @@ package com.example.financier.data.model
 
 import com.example.financier.enums.ClassificationSource
 import com.example.financier.enums.OperationType
+import com.google.gson.annotations.SerializedName
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
 import java.util.UUID
 
-@Serializable
 data class OperationResponse(
+    @SerializedName("id")
     val id: UUID,
+    @SerializedName("statement_id")
     val statementId: UUID,
-    val operationDate: LocalDate,
-    val postingDate: LocalDate? = null,
+    @SerializedName("operation_date")
+    val operationDate: String,
+    @SerializedName("posting_date")
+    val postingDate: String? = null,
+    @SerializedName("time")
     val time: String? = null,
+    @SerializedName("authorization_code")
     val authorizationCode: String? = null,
+    @SerializedName("amount")
     val amount: Double,
+    @SerializedName("currency")
     val currency: String = "RUB",
+    @SerializedName("raw_description")
     val rawDescription: String,
+    @SerializedName("normalized_description")
     val normalizedDescription: String,
+    @SerializedName("bank_category")
     val bankCategory: String? = null,
+    @SerializedName("merchant")
     val merchant: String? = null,
+    @SerializedName("category")
     val category: String = "other",
+    @SerializedName("subcategory")
     val subcategory: String? = null,
+    @SerializedName("operation_type")
     val operationType: OperationType,
+    @SerializedName("balance_after")
     val balanceAfter: Double? = null,
+    @SerializedName("classification_source")
     val classificationSource: ClassificationSource,
+    @SerializedName("confidence")
     val confidence: Double = 0.0
 )

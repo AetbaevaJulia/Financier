@@ -1,11 +1,13 @@
 package com.example.financier.data.model
 
 import com.example.financier.enums.StatementStatus
+import com.google.gson.annotations.SerializedName
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
-@Serializable
 data class UploadStatementResponse(
+    @SerializedName("statement_id")
     val statementId: UUID,
-    val status: StatementStatus
+    @SerializedName("status")
+    val status: String
 )

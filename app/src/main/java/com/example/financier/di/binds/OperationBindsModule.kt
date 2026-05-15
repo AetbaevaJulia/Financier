@@ -2,6 +2,10 @@ package com.example.financier.di.binds
 
 import com.example.financier.data.repositories.OperationsDatabaseRepository
 import com.example.financier.data.repositories.OperationsDatabaseRepositoryImpl
+import com.example.financier.data.repositories.OperationsRepository
+import com.example.financier.data.repositories.OperationsRepositoryImpl
+import com.example.financier.domain.operationUseCases.PatchFeedbackUseCase
+import com.example.financier.domain.operationUseCases.PatchFeedbackUseCaseImpl
 import com.example.financier.domain.operationUseCases.CreateOperationUseCase
 import com.example.financier.domain.operationUseCases.CreateOperationUseCaseImpl
 import com.example.financier.domain.operationUseCases.DeleteOperationUseCase
@@ -12,6 +16,8 @@ import com.example.financier.domain.operationUseCases.GetOperationsFromToUseCase
 import com.example.financier.domain.operationUseCases.GetOperationsFromToUseCaseImpl
 import com.example.financier.domain.operationUseCases.GetOperationsUseCase
 import com.example.financier.domain.operationUseCases.GetOperationsUseCaseImpl
+import com.example.financier.domain.operationUseCases.GetStatementOperationsUseCase
+import com.example.financier.domain.operationUseCases.GetStatementOperationsUseCaseImpl
 import dagger.Binds
 import dagger.Module
 import javax.inject.Singleton
@@ -21,7 +27,11 @@ interface OperationBindsModule {
 
     @Binds
     @Singleton
-    fun bindOperationsRepository(impl: OperationsDatabaseRepositoryImpl): OperationsDatabaseRepository
+    fun bindOperationsDatabaseRepository(impl: OperationsDatabaseRepositoryImpl): OperationsDatabaseRepository
+
+    @Binds
+    @Singleton
+    fun bindOperationsRepository(impl: OperationsRepositoryImpl): OperationsRepository
 
     @Binds
     @Singleton
@@ -42,4 +52,12 @@ interface OperationBindsModule {
     @Binds
     @Singleton
     fun bindDeleteOperationUseCase(impl: DeleteOperationUseCaseImpl): DeleteOperationUseCase
+
+    @Binds
+    @Singleton
+    fun bindGetStatementOperationsUseCase(impl: GetStatementOperationsUseCaseImpl): GetStatementOperationsUseCase
+
+    @Binds
+    @Singleton
+    fun bindPatchFeedbackUseCase(impl: PatchFeedbackUseCaseImpl): PatchFeedbackUseCase
 }

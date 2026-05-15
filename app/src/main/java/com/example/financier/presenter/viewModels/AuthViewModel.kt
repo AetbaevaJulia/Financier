@@ -1,6 +1,7 @@
 package com.example.financier.presenter.viewModels
 
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -21,15 +22,12 @@ class AuthViewModel @Inject constructor(
     private val _authState = MutableLiveData<AuthState>()
     val authState: LiveData<AuthState> = _authState
 
-    fun init() { //TODO требует доработки (проверка токена)
-        if (isLoggedIn()) {
-            viewModelScope.launch {
-                _authState.value = AuthState.Success(
-                    AuthResponse(
-                        getUserId().toString(),
-                        getToken().toString()
-                    )
-                )
+    fun init() {
+        viewModelScope.launch {
+            val email = getLastEmail()
+            val password = getLastPassword()
+            if (email != null || password != null) {
+                login(email!!, password!!)
             }
         }
     }
@@ -41,6 +39,7 @@ class AuthViewModel @Inject constructor(
 
             result.onSuccess { response ->
                 saveAuthData(response)
+                saveCredentials(email, password)
                 _authState.value = AuthState.Success(response)
             }.onFailure { error ->
                 _authState.value = AuthState.Error(error.message ?: "Ошибка регистрации")
@@ -55,6 +54,7 @@ class AuthViewModel @Inject constructor(
 
             result.onSuccess { response ->
                 saveAuthData(response)
+                saveCredentials(email, password)
                 _authState.value = AuthState.Success(response)
             }.onFailure { error ->
                 _authState.value = AuthState.Error(error.message ?: "Ошибка входа")
@@ -64,8 +64,16 @@ class AuthViewModel @Inject constructor(
 
     private fun saveAuthData(response: AuthResponse) {
         sharedPreferences.edit().apply {
-            putString("auth_token", response.token)
+            putString("auth_token", "Bearer ${response.token}")
             putString("user_id", response.user_id)
+            apply()
+        }
+    }
+
+    private fun saveCredentials(email: String, password: String) {
+        sharedPreferences.edit().apply {
+            putString("email", email)
+            putString("password", password)
             apply()
         }
     }
@@ -73,6 +81,10 @@ class AuthViewModel @Inject constructor(
     fun getToken(): String? = sharedPreferences.getString("auth_token", null)
 
     fun getUserId(): String? = sharedPreferences.getString("user_id", null)
+
+    fun getLastEmail(): String? = sharedPreferences.getString("email", null)
+
+    fun getLastPassword(): String? = sharedPreferences.getString("password", null)
 
     fun isLoggedIn(): Boolean = !getToken().isNullOrEmpty()
 

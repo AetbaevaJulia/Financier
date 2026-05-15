@@ -1,6 +1,7 @@
 package com.example.financier.data
 
 import com.example.financier.data.model.AuthResponse
+import com.example.financier.data.model.FeedbackRequest
 import com.example.financier.data.model.LoginRequest
 import com.example.financier.data.model.OperationResponse
 import com.example.financier.data.model.RegisterRequest
@@ -13,20 +14,26 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Multipart
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
 import java.util.UUID
 
 interface NetworkService {
+
     @GET("health")
     suspend fun health(): Map<String, String>
-@POST("auth/register")
-    suspend fun register(@Body request: RegisterRequest): Response<AuthResponse>
+
+    @POST("auth/register")
+    suspend fun register(
+        @Body request: RegisterRequest
+    ): Response<AuthResponse>
 
     @POST("auth/login")
-    suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
-
+    suspend fun login(
+        @Body request: LoginRequest
+    ): Response<AuthResponse>
 
     @Multipart
     @POST("statements")
@@ -42,13 +49,13 @@ interface NetworkService {
 
     @GET("statements/{statement_id}/status")
     suspend fun getStatementStatus(
-        @Path("statement_id") statementId: UUID,
+        @Path("statement_id") statementId: String,
         @Header("Authorization") authorization: String
     ): Response<StatementResponse>
 
     @GET("statements/{statement_id}/transactions")
     suspend fun getOperations(
-        @Path("statement_id") statementId: UUID,
+        @Path("statement_id") statementId: String,
         @Header("Authorization") authorization: String
     ): Response<List<OperationResponse>>
 
@@ -58,10 +65,10 @@ interface NetworkService {
         @Header("Authorization") authorization: String
     ): Response<Report>
 
-//    @PATCH("transactions/{transaction_id}/feedback")
-//    suspend fun updateTransactionFeedback(
-//        @Path("transaction_id") transactionId: UUID,
-//        @Body request: FeedbackRequest,
-//        @Header("Authorization") authorization: String
-//    ): Transaction
+    @PATCH("transactions/{transaction_id}/feedback") //Изменение данных о транзакции
+    suspend fun updateTransactionFeedback(
+        @Path("transaction_id") operationId: String,
+        @Body request: FeedbackRequest,
+        @Header("Authorization") authorization: String
+    ): Response<OperationResponse>
 }

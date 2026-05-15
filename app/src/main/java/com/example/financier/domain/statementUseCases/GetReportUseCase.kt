@@ -1,4 +1,4 @@
-package com.example.financier.domain.reportUseCase
+package com.example.financier.domain.statementUseCases
 
 import com.example.financier.data.model.Report
 import com.example.financier.data.repositories.StatementRepository

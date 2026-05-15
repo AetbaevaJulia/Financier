@@ -30,11 +30,10 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
 
         setupClickListeners()
         observeAuthState()
-        viewModel.init()  //TODO требует доработки (проверка токена)
+        viewModel.init()
     }
 
     private fun setupClickListeners() {
-        // Кнопка "Войти"
         binding.btToAuth.setOnClickListener {
             val email = binding.editTextEmail.text.toString().trim()
             val password = binding.editTextPassword.text.toString().trim()
@@ -74,7 +73,6 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
 
                 is AuthViewModel.AuthState.Success -> {
                     showLoading(false)
-                    Toast.makeText(requireContext(), "Вход выполнен успешно!", Toast.LENGTH_SHORT).show()
                     onLoginSuccess(state)
                 }
 

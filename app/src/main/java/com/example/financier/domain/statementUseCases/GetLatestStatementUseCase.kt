@@ -1,4 +1,4 @@
-package com.example.financier.domain.reportUseCase
+package com.example.financier.domain.statementUseCases
 
 import android.content.SharedPreferences
 import com.example.financier.data.model.StatementResponse
@@ -15,7 +15,7 @@ class GetLatestStatementUseCaseImpl @Inject constructor(
     private val sharedPreferences: SharedPreferences
 ) : GetLatestStatementUseCase {
 
-    private val testStatementId = "ba7a43b5-6455-4f2f-9dc9-4681ada74364"
+    private val testStatementId = "1cb67309-f573-4461-8627-f2262e06e4ef"
 
     override suspend fun invoke(token: String): StatementResponse? {
         // Для теста, это фейковый StatementResponse
@@ -33,8 +33,8 @@ class GetLatestStatementUseCaseImpl @Inject constructor(
             filename = "test_statement_recommendations.pdf",
             bank = "sber",
             status = com.example.financier.enums.StatementStatus.REPORT_READY,
-            createdAt = java.time.LocalDateTime.now().minusDays(5),
-            updatedAt = java.time.LocalDateTime.now()
+            createdAt = java.time.LocalDateTime.now().minusDays(5).toString(),
+            updatedAt = java.time.LocalDateTime.now().toString()
         )
     }
 }

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -52,6 +53,8 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         setupDatePicker()
         setupAddNewButton()
         setupObservers()
+
+        viewModel.init() //TODO запуск тестового блока
     }
 
     private fun setupRecyclerView() {
@@ -154,8 +157,10 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                 is MainViewModel.UploadState.Success ->
                     Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
 
-                is MainViewModel.UploadState.Error ->
+                is MainViewModel.UploadState.Error -> {
+                    Log.d("Ошибка", state.message)
                     Toast.makeText(requireContext(), "Ошибка: ${state.message}", Toast.LENGTH_LONG).show()
+                }
 
                 MainViewModel.UploadState.Idle -> TODO()
             }

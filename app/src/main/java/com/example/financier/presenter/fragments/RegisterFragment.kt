@@ -30,11 +30,10 @@ class RegisterFragment : Fragment(R.layout.fragment_registration) {
 
         setupClickListeners()
         observeAuthState()
-        viewModel.init()  //TODO требует доработки (проверка токена)
+        viewModel.init()
     }
 
     private fun setupClickListeners() {
-        // Кнопка "Зарегистрироваться"
         binding.btToRegistration.setOnClickListener {
             val email = binding.editTextEmail.text.toString().trim()
             val password = binding.editTextPassword.text.toString().trim()
@@ -78,7 +77,6 @@ class RegisterFragment : Fragment(R.layout.fragment_registration) {
 
                 is AuthViewModel.AuthState.Success -> {
                     showLoading(false)
-                    Toast.makeText(requireContext(), "Регистрация успешна!", Toast.LENGTH_SHORT).show()
                     onRegistrationSuccess(state)
                 }
 
