@@ -3,30 +3,24 @@ package com.example.financier.presenter.viewModels
 import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
-import androidx.core.net.toFile
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.financier.data.model.DiagramItem
-import com.example.financier.data.model.FeedbackRequest
+import com.example.financier.data.model.OperationResponse
 import com.example.financier.data.model.Report
-import com.example.financier.data.repositories.StatementRepositoryImpl
 import com.example.financier.domain.operationUseCases.GetStatementOperationsUseCase
 import com.example.financier.domain.operationUseCases.PatchFeedbackUseCase
 import com.example.financier.domain.statementUseCases.GetAllStatementsUseCase
 import com.example.financier.domain.statementUseCases.GetLastReportUseCase
-import com.example.financier.domain.statementUseCases.GetLatestStatementUseCase
 import com.example.financier.domain.statementUseCases.GetReportUseCase
 import com.example.financier.domain.statementUseCases.GetStatementUseCase
 import com.example.financier.domain.statementUseCases.UploadStatementUseCase
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.data.PieEntry
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import java.io.File
+import kotlinx.coroutines.runBlocking
 import java.util.Date
 import javax.inject.Inject
 
@@ -81,7 +75,7 @@ class MainViewModel @Inject constructor(
                 _report.postValue(reportData)
                 _uiState.value = UiState.Success(reportData)
 
-                val diagramsList = convertReportToDiagrams(reportData)
+                val diagramsList = convertReportToDiagrams(reportData)  // теперь suspend
                 _diagrams.postValue(diagramsList)
             } else {
                 _uiState.value = UiState.Error("Не удалось загрузить отчёт")
@@ -106,7 +100,7 @@ class MainViewModel @Inject constructor(
                 _report.postValue(reportData)
                 _uiState.value = UiState.Success(reportData)
 
-                val diagramsList = convertReportToDiagrams(reportData)
+                val diagramsList = convertReportToDiagrams(reportData)  // теперь suspend
                 _diagrams.postValue(diagramsList)
             } else {
                 _uiState.value = UiState.Error("Не удалось загрузить отчёт")
@@ -117,17 +111,20 @@ class MainViewModel @Inject constructor(
     /**
      * Преобразует данные отчёта в список объектов DiagramItem с данными для графиков
      */
-    private fun convertReportToDiagrams(report: Report): List<DiagramItem> {
+    /**
+     * Преобразует данные отчёта в список объектов DiagramItem с данными для графиков
+     */
+    private suspend fun convertReportToDiagrams(report: Report): List<DiagramItem> {
         val list = mutableListOf<DiagramItem>()
 
-        val categories = report.expenseByCategory
+        val categories = report.expenseByCategory ?: emptyMap()
 
         if (categories.isEmpty()) {
             list.add(DiagramItem(id = "empty", title = "Нет данных", isMain = true))
             return list
         }
 
-        // === 1. Большая круговая диаграмма (первый элемент) ===
+        // 1. Большая круговая диаграмма
         val pieEntries = categories.map { (category, amount) ->
             PieEntry(amount.toFloat(), category)
         }
@@ -137,19 +134,20 @@ class MainViewModel @Inject constructor(
                 id = "main_pie",
                 title = "Расходы по категориям",
                 isMain = true,
-                pieData = pieEntries
+                pieData = pieEntries,
+                totalAmount = report.totalExpense
             )
         )
 
-        // === 2. Столбчатые диаграммы по категориям ===
-        categories.forEach { (category, amount) ->
-            val barEntries = listOf(BarEntry(0f, amount.toFloat()))
+        // 2. Столбчатые диаграммы по подкатегориям
+        for ((category, _) in categories) {
+            val subcategories = getSubcategories(category)
 
             list.add(
                 DiagramItem(
                     id = "bar_$category",
                     title = category.replaceFirstChar { it.uppercaseChar() },
-                    barData = barEntries,
+                    subcategoryData = subcategories,
                     categoryName = category
                 )
             )
@@ -157,6 +155,29 @@ class MainViewModel @Inject constructor(
 
         return list
     }
+
+    private suspend fun getSubcategories(category: String): Map<String, Double> {
+        val subcategories = mutableMapOf<String, Double>()
+
+        try {
+            val statementId = _statementId.value ?: return emptyMap()
+            val token = getToken()
+
+            val transactions = getStatementOperationsUseCase.invoke(statementId, token)
+
+            transactions?.forEach { transaction ->
+                if (transaction.category == category) {
+                    val subName = transaction.subcategory ?: "Без подкатегории"
+                    subcategories[subName] = (subcategories[subName] ?: 0.0) + transaction.amount
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("MainViewModel", "Ошибка получения подкатегорий для $category", e)
+        }
+
+        return subcategories
+    }
+
 
     /**
      * Обновление выбранного диапазона дат

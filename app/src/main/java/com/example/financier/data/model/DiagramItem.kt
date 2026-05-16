@@ -12,5 +12,6 @@ data class DiagramItem(
     val pieData: List<PieEntry>? = null,   // для PieChart
     val barData: List<BarEntry>? = null,   // для BarChart
     val categoryName: String? = null,
-    
+    val totalAmount: Double? = 0.0,
+    val subcategoryData: Map<String, Double>? = null
 )

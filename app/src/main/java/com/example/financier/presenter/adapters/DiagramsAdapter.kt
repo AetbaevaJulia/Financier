@@ -10,14 +10,15 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.financier.data.model.DiagramItem
 import com.example.financier.databinding.ItemDiagramsBinding
 import com.github.mikephil.charting.components.Legend
+import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.formatter.DefaultValueFormatter
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.PercentFormatter
-import com.github.mikephil.charting.utils.ColorTemplate
-
 class DiagramsAdapter : ListAdapter<DiagramItem, DiagramsAdapter.DiagramViewHolder>(DiagramDiffCallback()) {
 
     class DiagramViewHolder(private val binding: ItemDiagramsBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -53,7 +54,7 @@ class DiagramsAdapter : ListAdapter<DiagramItem, DiagramsAdapter.DiagramViewHold
                     transparentCircleRadius = 58f
 
                     setCenterTextSize(15f)
-                    centerText = "Всего расходов\n${item.title}" // можно улучшить позже
+                    centerText = "Всего расходов\n${item.totalAmount?.toInt() ?: ""} ₽"
 
                     setDrawEntryLabels(false)
 
@@ -68,31 +69,46 @@ class DiagramsAdapter : ListAdapter<DiagramItem, DiagramsAdapter.DiagramViewHold
                         xEntrySpace = 12f
                         yEntrySpace = 8f
                     }
-
-                    description.isEnabled = false
-                    invalidate()           // ← КРИТИЧНО!
                 }
 
-            } else if (item.barData != null) {
+            } else if (item.subcategoryData != null) {
                 binding.pieChart.isVisible = false
                 binding.barChart.isVisible = true
 
-                val barDataSet = BarDataSet(item.barData, item.categoryName ?: item.title).apply {
-                    colors = ColorTemplate.MATERIAL_COLORS.toList()
-                    valueTextSize = 12f
+                val entries = ArrayList<BarEntry>()
+                val labels = ArrayList<String>()
+
+                val sorted = item.subcategoryData.entries.sortedByDescending { it.value }
+
+                sorted.forEachIndexed { index, (name, value) ->
+                    labels.add(name)
+                    entries.add(BarEntry(index.toFloat(), value.toFloat()))
+                }
+
+                val barDataSet = BarDataSet(entries, "").apply {
+                    colors = chartColors
+                    valueTextSize = 11f
                     valueTextColor = Color.BLACK
                 }
 
-                val barData = BarData(barDataSet).apply { barWidth = 0.7f }
+                val barData = BarData(barDataSet).apply {
+                    barWidth = 0.65f
+                }
 
                 binding.barChart.apply {
                     data = barData
                     description.isEnabled = false
                     legend.isEnabled = false
-                    setDrawGridBackground(false)
-                    setDrawBorders(false)
 
-                    xAxis.isEnabled = false
+                    xAxis.apply {
+                        position = XAxis.XAxisPosition.BOTTOM
+                        valueFormatter = IndexAxisValueFormatter(labels)
+                        granularity = 1f
+                        setDrawGridLines(false)
+                        textSize = 11f
+                        labelRotationAngle = 35f
+                    }
+
                     axisRight.isEnabled = false
                     axisLeft.apply {
                         valueFormatter = DefaultValueFormatter(0)
@@ -100,7 +116,8 @@ class DiagramsAdapter : ListAdapter<DiagramItem, DiagramsAdapter.DiagramViewHold
                     }
 
                     setDrawValueAboveBar(true)
-                    invalidate()           // ← тоже важно
+                    setExtraBottomOffset(20f)
+                    invalidate()
                 }
             }
         }
