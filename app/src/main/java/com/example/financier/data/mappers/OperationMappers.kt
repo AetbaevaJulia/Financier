@@ -3,8 +3,6 @@ package com.example.financier.data.mappers
 import com.example.financier.data.model.OperationEntity
 import com.example.financier.data.model.OperationRequest
 import com.example.financier.data.model.OperationResponse
-import java.sql.Date
-import java.sql.Time
 import java.util.UUID
 
 fun OperationResponse.toEntity(): OperationEntity = OperationEntity(
@@ -22,16 +20,16 @@ fun OperationResponse.toEntity(): OperationEntity = OperationEntity(
     merchant = merchant,
     category = category,
     subcategory = subcategory,
-    operationType = operationType.toString(),
+    operationType = operationType,
     balanceAfter = balanceAfter,
-    classificationSource = classificationSource.toString(),
+    classificationSource = classificationSource,
     confidence = confidence
 )
 
 fun OperationEntity.toRequest(): OperationRequest = OperationRequest(
     operationId = UUID.fromString(operationId),
     statementId = UUID.fromString(statementId),
-    operationDate = operationDate.toString(),
+    operationDate = operationDate,
     postingDate = postingDate.toString(),
     time = time.toString(),
     authorizationCode = authorizationCode,

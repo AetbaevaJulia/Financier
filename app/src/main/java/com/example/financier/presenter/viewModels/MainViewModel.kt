@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.util.Date
 import javax.inject.Inject
+import kotlin.math.absoluteValue
 
 class MainViewModel @Inject constructor(
     private val getLastReportUseCase: GetLastReportUseCase,
@@ -141,8 +142,7 @@ class MainViewModel @Inject constructor(
 
         // 2. Столбчатые диаграммы по подкатегориям
         for ((category, _) in categories) {
-            val subcategories = getSubcategories(category)
-
+            val subcategories = getSubcategories(category, report.statementId)
             list.add(
                 DiagramItem(
                     id = "bar_$category",
@@ -156,11 +156,9 @@ class MainViewModel @Inject constructor(
         return list
     }
 
-    private suspend fun getSubcategories(category: String): Map<String, Double> {
+    private suspend fun getSubcategories(category: String, statementId: String): Map<String, Double> {
         val subcategories = mutableMapOf<String, Double>()
-
         try {
-            val statementId = _statementId.value ?: return emptyMap()
             val token = getToken()
 
             val transactions = getStatementOperationsUseCase.invoke(statementId, token)
@@ -168,7 +166,7 @@ class MainViewModel @Inject constructor(
             transactions?.forEach { transaction ->
                 if (transaction.category == category) {
                     val subName = transaction.subcategory ?: "Без подкатегории"
-                    subcategories[subName] = (subcategories[subName] ?: 0.0) + transaction.amount
+                    subcategories[subName] = (subcategories[subName] ?: 0.0) + transaction.amount.absoluteValue
                 }
             }
         } catch (e: Exception) {
@@ -221,14 +219,14 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             try{
                 while (_statementStatus.value != "report_ready") {
-                    kotlinx.coroutines.delay(3000)
-                    var statement = getStatementUseCase(statementId, getToken())
-                    if (statement?.status == "report_ready") {
+                    val statement = getStatementUseCase(statementId, getToken())
+                    if (statement?.status == "report_ready" && _statementStatus.value != "report_ready") {
                         _statementStatus.postValue("report_ready")
                     }
                     else if (statement?.status == "failed") {
                         throw Exception("статус failed")
                     }
+                    kotlinx.coroutines.delay(3000)
                 }
             } catch (e: Exception) {
                 _uploadState.value = UploadState.Error(e.message ?: "Ошибка получения отчета")

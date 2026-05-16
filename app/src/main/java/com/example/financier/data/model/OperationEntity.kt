@@ -2,11 +2,6 @@ package com.example.financier.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.financier.enums.ClassificationSource
-import com.example.financier.enums.OperationType
-import java.sql.Time
-import java.util.Date
-import java.util.UUID
 
 @Entity(
     tableName = OperationEntity.TABLE

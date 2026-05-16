@@ -1,7 +1,5 @@
 package com.example.financier.data.model
 
-import com.example.financier.enums.ClassificationSource
-import com.example.financier.enums.OperationType
 import com.google.gson.annotations.SerializedName
 import java.util.UUID
 
