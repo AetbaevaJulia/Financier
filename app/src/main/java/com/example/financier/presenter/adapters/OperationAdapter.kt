@@ -5,7 +5,6 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.financier.data.mappers.toRequest
 import com.example.financier.data.model.OperationEntity
 import com.example.financier.databinding.ItemListOperationsBinding
 import java.text.SimpleDateFormat
@@ -18,7 +17,7 @@ class OperationsAdapter : ListAdapter<OperationEntity, OperationsAdapter.Operati
             binding.tvTitle.text = item.normalizedDescription
             binding.tvAmount.text = "${item.amount} ₽"
 
-            binding.tvDate.text = item.toRequest().operationDate
+            binding.tvDate.text = SimpleDateFormat.getDateInstance().format(item.dateTime)
         }
     }
 

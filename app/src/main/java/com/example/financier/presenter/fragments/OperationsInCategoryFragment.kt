@@ -25,7 +25,7 @@ class OperationsInCategoryFragment : Fragment(R.layout.fragment_operations_in_ca
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
 
-    private val viewModel: MainViewModel by viewModels { viewModelFactory }
+    private val viewModel: OperationsInCategoryViewModel by viewModels { viewModelFactory }
 
     private val operationsAdapter = OperationsAdapter()
 

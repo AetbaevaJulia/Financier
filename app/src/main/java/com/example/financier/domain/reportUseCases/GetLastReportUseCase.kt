@@ -1,4 +1,4 @@
-package com.example.financier.domain.statementUseCases
+package com.example.financier.domain.reportUseCases
 
 import com.example.financier.data.mappers.toResponse
 import com.example.financier.data.model.Report

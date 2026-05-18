@@ -1,5 +1,7 @@
 package com.example.financier.presenter.viewModels
 
+import android.content.SharedPreferences
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -11,6 +13,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class OperationsInCategoryViewModel @Inject constructor(
+    private val sharedPreferences: SharedPreferences,
     private val getOperationsByCategoryUseCase: GetOperationsByCategoryUseCase
 ) : ViewModel() {
 
@@ -21,17 +24,20 @@ class OperationsInCategoryViewModel @Inject constructor(
     val totalAmount: LiveData<Double> get() = _totalAmount
 
     fun loadOperations(category: String, subcategory: String? = null) {
-//        viewModelScope.launch {
-//            getOperationsByCategoryUseCase.invoke(category).collectLatest { list ->
-//                val filteredList = if (!subcategory.isNullOrBlank() && subcategory != "Без подкатегории") {
-//                    list.filter { it.subcategory == subcategory }
-//                } else {
-//                    list
-//                }
-//
-//                _operations.value = filteredList
-//                _totalAmount.value = filteredList.sumOf { it.amount }
-//            }
-//        }
+        viewModelScope.launch {
+            val savedStart = sharedPreferences.getLong("selected_start_date", 0)
+            val savedEnd = sharedPreferences.getLong("selected_end_date", 0)
+
+            getOperationsByCategoryUseCase.invoke(category, savedStart, savedEnd).collectLatest { list ->
+                val filteredList = if (!subcategory.isNullOrBlank() && subcategory != "Без подкатегории") {
+                    list.filter { it.subcategory == subcategory }
+                } else {
+                    list
+                }
+
+                _operations.value = filteredList
+                _totalAmount.value = filteredList.sumOf { it.amount }
+            }
+        }
     }
 }

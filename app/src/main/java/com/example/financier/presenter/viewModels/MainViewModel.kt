@@ -14,9 +14,9 @@ import com.example.financier.data.model.Report
 import com.example.financier.domain.operationUseCases.GetOperationsByCategoryUseCase
 import com.example.financier.domain.operationUseCases.GetStatementOperationsUseCase
 import com.example.financier.domain.operationUseCases.PatchFeedbackUseCase
+import com.example.financier.domain.reportUseCases.GetLastReportUseCase
+import com.example.financier.domain.reportUseCases.GetReportUseCase
 import com.example.financier.domain.statementUseCases.GetAllStatementsUseCase
-import com.example.financier.domain.statementUseCases.GetLastReportUseCase
-import com.example.financier.domain.statementUseCases.GetReportUseCase
 import com.example.financier.domain.statementUseCases.GetStatementUseCase
 import com.example.financier.domain.statementUseCases.UploadStatementUseCase
 import com.github.mikephil.charting.data.BarEntry
@@ -27,6 +27,7 @@ import kotlinx.coroutines.runBlocking
 import java.util.Date
 import javax.inject.Inject
 import kotlin.math.absoluteValue
+import androidx.core.content.edit
 
 class MainViewModel @Inject constructor(
     private val getLastReportUseCase: GetLastReportUseCase,
@@ -217,9 +218,11 @@ class MainViewModel @Inject constructor(
     /**
      * Обновление выбранного диапазона дат
      */
-    fun setDateRange(startDate: Date, endDate: Date) {
-        _selectedStartDate.postValue(startDate)
-        _selectedEndDate.postValue(endDate)
+    fun setDateRange(startDate: Long?, endDate: Long?) {
+//        _selectedStartDate.postValue(startDate)
+//        _selectedEndDate.postValue(endDate)
+        sharedPreferences.edit { putLong("selected_start_date", startDate ?: 0) }
+        sharedPreferences.edit { putLong("selected_end_date", endDate ?: 0) }
     }
 
     private val _statementId = MutableLiveData<String?>()
