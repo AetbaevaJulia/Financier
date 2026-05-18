@@ -110,7 +110,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
             val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
             binding.dateText.text = "${dateFormat.format(startDate)} - ${dateFormat.format(endDate)}"
 
-            viewModel.setDateRange(startDate, endDate)
+            viewModel.setDateRange(selection.first, selection.second)
         }
 
         picker.show(parentFragmentManager, "date_range_picker")
