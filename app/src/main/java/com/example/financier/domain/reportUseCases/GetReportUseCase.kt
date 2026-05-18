@@ -16,7 +16,11 @@ class GetReportUseCaseImpl @Inject constructor(
 ) : GetReportUseCase {
     override suspend operator fun invoke(statementId: String, token: String): Report? {
 
-        val report = repository.getReport(statementId, token)
+        var report = repository.getReport(statementId, token)
+
+        if (report == null) {
+            report = repository.generateReport(statementId, null, token = token)
+        }
 
         if (report != null) {
             val localReport = report.toEntity()
