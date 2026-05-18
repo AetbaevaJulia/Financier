@@ -38,7 +38,9 @@ class MainViewModel @Inject constructor(
 
     fun init()  {
         viewModelScope.launch {
-            loadLastReport()
+            if(_report.value == null){
+                loadLastReport()
+            }
         }
     }
 
@@ -76,7 +78,7 @@ class MainViewModel @Inject constructor(
                 _report.postValue(reportData)
                 _uiState.value = UiState.Success(reportData)
 
-                val diagramsList = convertReportToDiagrams(reportData)  // теперь suspend
+                val diagramsList = convertReportToDiagrams(reportData)
                 _diagrams.postValue(diagramsList)
             } else {
                 _uiState.value = UiState.Error("Не удалось загрузить отчёт")

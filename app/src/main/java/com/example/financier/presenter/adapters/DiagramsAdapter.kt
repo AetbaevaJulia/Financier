@@ -19,11 +19,18 @@ import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.formatter.DefaultValueFormatter
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.PercentFormatter
-class DiagramsAdapter : ListAdapter<DiagramItem, DiagramsAdapter.DiagramViewHolder>(DiagramDiffCallback()) {
+import com.github.mikephil.charting.highlight.Highlight
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.PieEntry
+
+class DiagramsAdapter(
+    private val onCategoryClick: (category: String, subcategory: String?) -> Unit
+) : ListAdapter<DiagramItem, DiagramsAdapter.DiagramViewHolder>(DiagramDiffCallback()) {
 
     class DiagramViewHolder(private val binding: ItemDiagramsBinding) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: DiagramItem) {
+        fun bind(item: DiagramItem, onClick: (String, String?) -> Unit) {
             binding.tvChartTitle.text = item.title
 
             val chartColors: List<Int> = listOf(
@@ -50,6 +57,7 @@ class DiagramsAdapter : ListAdapter<DiagramItem, DiagramsAdapter.DiagramViewHold
                     data = pieData
                     isDrawHoleEnabled = true
                     setHoleColor(Color.WHITE)
+                    description.isEnabled = false
                     holeRadius = 52f
                     transparentCircleRadius = 58f
 
@@ -69,6 +77,16 @@ class DiagramsAdapter : ListAdapter<DiagramItem, DiagramsAdapter.DiagramViewHold
                         xEntrySpace = 12f
                         yEntrySpace = 8f
                     }
+
+                    // Клик по сектору
+                    setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
+                        override fun onValueSelected(e: Entry?, h: Highlight?) {
+                            if (e is PieEntry) {
+                                onClick(e.label, null)
+                            }
+                        }
+                        override fun onNothingSelected() {}
+                    })
                 }
 
             } else if (item.subcategoryData != null) {
@@ -91,9 +109,7 @@ class DiagramsAdapter : ListAdapter<DiagramItem, DiagramsAdapter.DiagramViewHold
                     valueTextColor = Color.BLACK
                 }
 
-                val barData = BarData(barDataSet).apply {
-                    barWidth = 0.65f
-                }
+                val barData = BarData(barDataSet).apply { barWidth = 0.65f }
 
                 binding.barChart.apply {
                     data = barData
@@ -106,7 +122,6 @@ class DiagramsAdapter : ListAdapter<DiagramItem, DiagramsAdapter.DiagramViewHold
                         granularity = 1f
                         setDrawGridLines(false)
                         textSize = 11f
-                        labelRotationAngle = 35f
                     }
 
                     axisRight.isEnabled = false
@@ -117,6 +132,21 @@ class DiagramsAdapter : ListAdapter<DiagramItem, DiagramsAdapter.DiagramViewHold
 
                     setDrawValueAboveBar(true)
                     setExtraBottomOffset(20f)
+
+                    // Клик по бару
+                    setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
+                        override fun onValueSelected(e: Entry?, h: Highlight?) {
+                            if (e != null) {
+                                val index = e.x.toInt()
+                                if (index in sorted.indices) {
+                                    val subcat = sorted[index].key
+                                    onClick(item.categoryName ?: "", subcat)
+                                }
+                            }
+                        }
+                        override fun onNothingSelected() {}
+                    })
+
                     invalidate()
                 }
             }
@@ -129,14 +159,11 @@ class DiagramsAdapter : ListAdapter<DiagramItem, DiagramsAdapter.DiagramViewHold
     }
 
     override fun onBindViewHolder(holder: DiagramViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), onCategoryClick)
     }
 }
 
 class DiagramDiffCallback : DiffUtil.ItemCallback<DiagramItem>() {
-    override fun areItemsTheSame(oldItem: DiagramItem, newItem: DiagramItem): Boolean =
-        oldItem.id == newItem.id
-
-    override fun areContentsTheSame(oldItem: DiagramItem, newItem: DiagramItem): Boolean =
-        oldItem == newItem
+    override fun areItemsTheSame(oldItem: DiagramItem, newItem: DiagramItem): Boolean = oldItem.id == newItem.id
+    override fun areContentsTheSame(oldItem: DiagramItem, newItem: DiagramItem): Boolean = oldItem == newItem
 }

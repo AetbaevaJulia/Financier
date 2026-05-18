@@ -21,7 +21,7 @@
             android:layout_weight="0.65"
             android:minHeight="48dp"
 
-            android:layout_gravity="center"
+            android:gravity="center"
             android:clickable="true"
 
             android:textSize="16sp"
