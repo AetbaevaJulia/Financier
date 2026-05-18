@@ -17,7 +17,7 @@ class OperationsAdapter : ListAdapter<OperationEntity, OperationsAdapter.Operati
             binding.tvTitle.text = item.normalizedDescription
             binding.tvAmount.text = "${item.amount} ₽"
 
-            binding.tvDate.text = item.operationDate
+            binding.tvDate.text = SimpleDateFormat.getDateInstance().format(item.dateTime)
         }
     }
 

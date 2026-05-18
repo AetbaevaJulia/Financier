@@ -35,6 +35,16 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
     private val viewModel: MainViewModel by viewModels { viewModelFactory }
 
+    private val dateRangePicker = MaterialDatePicker.Builder.dateRangePicker()
+        .setTitleText("Выберите дату")
+        .setSelection(
+            androidx.core.util.Pair(
+                MaterialDatePicker.todayInUtcMilliseconds(),
+                MaterialDatePicker.todayInUtcMilliseconds() + 7*86400*1000
+            )
+        )
+        .build()
+
     private val diagramsAdapter = DiagramsAdapter { category, subcategory ->
         val action = MainFragmentDirections.actionMainFragmentToOperationsInCategoryFragment(
             category = category,
@@ -84,34 +94,40 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
     private fun setupDatePicker() {
         binding.dateText.setOnClickListener {
-            showDateRangePicker()
+            dateRangePicker.show(childFragmentManager, null)
         }
 
+        dateRangePicker.addOnPositiveButtonClickListener {
+            viewModel.setDateRange(
+                start = it.first,
+                end = it.second
+            )
+        }
         // Автоматическая установка дат: месяц назад — сегодня
-        val calendar = Calendar.getInstance()
-        val endDate = calendar.time
-        calendar.add(Calendar.MONTH, -1)
-        val startDate = calendar.time
-
-        val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-        binding.dateText.text = "${dateFormat.format(startDate)} - ${dateFormat.format(endDate)}"
+//        val calendar = Calendar.getInstance()
+//        val endDate = calendar.time
+//        calendar.add(Calendar.MONTH, -1)
+//        val startDate = calendar.time
+//
+//        val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+//        binding.dateText.text = "${dateFormat.format(startDate)} - ${dateFormat.format(endDate)}"
     }
 
-    private fun showDateRangePicker() {
-        val picker = MaterialDatePicker.Builder.dateRangePicker().build()
-
-        picker.addOnPositiveButtonClickListener { selection ->
-            val startDate = Date(selection.first ?: System.currentTimeMillis())
-            val endDate = Date(selection.second ?: System.currentTimeMillis())
-
-            val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-            binding.dateText.text = "${dateFormat.format(startDate)} - ${dateFormat.format(endDate)}"
-
-            viewModel.setDateRange(startDate, endDate)
-        }
-
-        picker.show(parentFragmentManager, "date_range_picker")
-    }
+//    private fun showDateRangePicker() {
+//        val picker = MaterialDatePicker.Builder.dateRangePicker().build()
+//
+//        picker.addOnPositiveButtonClickListener { selection ->
+//            val startDate = Date(selection.first ?: System.currentTimeMillis())
+//            val endDate = Date(selection.second ?: System.currentTimeMillis())
+//
+//            val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+//            binding.dateText.text = "${dateFormat.format(startDate)} - ${dateFormat.format(endDate)}"
+//
+//            viewModel.setDateRange(startDate, endDate)
+//        }
+//
+//        picker.show(parentFragmentManager, "date_range_picker")
+//    }
 
     private fun setupAddNewButton() {
         binding.addNew.setOnClickListener {

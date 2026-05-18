@@ -77,7 +77,7 @@ class StatementRepositoryImpl @Inject constructor(
         token: String
     ): Report? {
         return try {
-            val response: Response<Report> = service.getReport(statementId, token)
+            val response: Response<Report> = service.generateReport(statementId, request, token)
             if (response.isSuccessful) {
                 response.body()
             } else {

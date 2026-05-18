@@ -8,7 +8,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.financier.data.model.DiagramItem
+import com.example.financier.data.model.OperationEntity
 import com.example.financier.data.model.Report
+import com.example.financier.domain.operationUseCases.GetOperationsByCategoryUseCase
 import com.example.financier.domain.operationUseCases.GetStatementOperationsUseCase
 import com.example.financier.domain.operationUseCases.PatchFeedbackUseCase
 import com.example.financier.domain.statementUseCases.GetAllStatementsUseCase
@@ -17,10 +19,12 @@ import com.example.financier.domain.reportUseCases.GetReportUseCase
 import com.example.financier.domain.statementUseCases.GetStatementUseCase
 import com.example.financier.domain.statementUseCases.UploadStatementUseCase
 import com.github.mikephil.charting.data.PieEntry
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.Date
 import javax.inject.Inject
 import kotlin.math.absoluteValue
+import androidx.core.content.edit
 
 class MainViewModel @Inject constructor(
     private val getLastReportUseCase: GetLastReportUseCase,
@@ -30,7 +34,8 @@ class MainViewModel @Inject constructor(
     private val getAllStatementsUseCase: GetAllStatementsUseCase,
     private val getStatementUseCase: GetStatementUseCase,
     private val getStatementOperationsUseCase: GetStatementOperationsUseCase,
-    private val patchFeedbackUseCase: PatchFeedbackUseCase
+    private val patchFeedbackUseCase: PatchFeedbackUseCase,
+    private val getOperationsByCategoryUseCase: GetOperationsByCategoryUseCase
 ) : ViewModel() {
 
     fun init()  {
@@ -46,11 +51,13 @@ class MainViewModel @Inject constructor(
     val diagrams: LiveData<List<DiagramItem>> = _diagrams
 
     // === Выбранный диапазон дат ===
-    private val _selectedStartDate = MutableLiveData<Date>()
-    val selectedStartDate: LiveData<Date> = _selectedStartDate
+    private val _selectedStartDate = MutableLiveData<Long?>()
+    val selectedStartDate: LiveData<Long?>
+        get() = _selectedStartDate
 
-    private val _selectedEndDate = MutableLiveData<Date>()
-    val selectedEndDate: LiveData<Date> = _selectedEndDate
+    private val _selectedEndDate = MutableLiveData<Long?>()
+    val selectedEndDate: LiveData<Long?>
+        get() = _selectedEndDate
 
     // === Состояние загрузки файла ===
     private val _uploadState = MutableLiveData<UploadState>()
@@ -179,9 +186,12 @@ class MainViewModel @Inject constructor(
     /**
      * Обновление выбранного диапазона дат
      */
-    fun setDateRange(startDate: Date, endDate: Date) {
-        _selectedStartDate.value = startDate
-        _selectedEndDate.value = endDate
+    fun setDateRange(start: Long?, end: Long?) {
+        _selectedStartDate.value = start
+        _selectedEndDate.value = end
+
+        sharedPreferences.edit { putLong("selected_start_date", start ?: 0) }
+        sharedPreferences.edit { putLong("selected_end_date", end ?: 0) }
     }
 
     private val _statementId = MutableLiveData<String?>()
@@ -219,6 +229,7 @@ class MainViewModel @Inject constructor(
             try{
                 while (_statementStatus.value != "report_ready") {
                     val statement = getStatementUseCase(statementId, getToken())
+                    Log.d("Обновляю статус", "$statementId ${statement?.status}")
                     if (statement?.status == "report_ready" && _statementStatus.value != "report_ready") {
                         _statementStatus.postValue("report_ready")
                     }

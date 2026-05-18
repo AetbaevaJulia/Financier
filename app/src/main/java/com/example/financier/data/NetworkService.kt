@@ -66,7 +66,7 @@ interface NetworkService {
         @Header("Authorization") authorization: String
     ): Response<Report>
 
-    @GET("statements/{statement_id}/analytics")
+    @POST("statements/{statement_id}/analytics")
     suspend fun generateReport(
         @Path("statement_id") statementId: String,
         @Body request: AnalyticsRequest?,

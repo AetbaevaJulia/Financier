@@ -49,20 +49,13 @@ class UploadStatementUseCaseImpl @Inject constructor(
             var file = MultipartBody.Part.createFormData("file", fileName, requestBody)
 
             // 2. Отправляем файл
-            val operations = repository.uploadStatement(file, token)
+            repository.uploadStatement(file, token)
 
-            operations?.forEach { remoteOperation ->
-                val localOperation = remoteOperation.toEntity()
-                databaseRepository.createOperation(localOperation)
-            }
+            val statements = repository.getAllStatements(token)
 
-            if (operations != null)
-            {
-                UploadStatementResponse(operations[0].statementId, "uploading")
-            }
-            else {
-                null
-            }
+            if (statements != null) {
+                UploadStatementResponse(statements[0].statementId, "uploading")
+            } else null
         }
     }
 }

@@ -1,6 +1,8 @@
 package com.example.financier.domain.reportUseCases
 
+import android.util.Log
 import com.example.financier.data.mappers.toEntity
+import com.example.financier.data.model.AnalyticsRequest
 import com.example.financier.data.model.Report
 import com.example.financier.data.repositories.ReportDatabaseRepository
 import com.example.financier.data.repositories.StatementRepository
@@ -18,8 +20,10 @@ class GetReportUseCaseImpl @Inject constructor(
 
         var report = repository.getReport(statementId, token)
 
+        Log.d("Загруженный репорт", report.toString())
         if (report == null) {
-            report = repository.generateReport(statementId, null, token = token)
+            report = repository.generateReport(statementId, AnalyticsRequest(), token = token)
+            Log.d("Загруженный аналитик", report.toString())
         }
 
         if (report != null) {

@@ -17,11 +17,7 @@ class GenerateReportUseCaseImpl @Inject constructor(
 ) : GenerateReportUseCase {
     override suspend operator fun invoke(statementId: String, request: AnalyticsRequest?, token: String): Report? {
 
-        var report = repository.generateReport(statementId, request, token)
-
-        if (report == null) {
-            report = repository.generateReport(statementId, null, token = token)
-        }
+        val report = repository.generateReport(statementId, request, token)
 
         if (report != null) {
             val localReport = report.toEntity()
