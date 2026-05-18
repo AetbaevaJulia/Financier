@@ -3,16 +3,15 @@ package com.example.financier.presenter.fragments
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import com.github.mikephil.charting.formatter.PercentFormatter
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.financier.R
 import com.example.financier.appComponent
@@ -20,10 +19,6 @@ import com.example.financier.databinding.FragmentMainBinding
 import com.example.financier.di.viewModel.ViewModelFactory
 import com.example.financier.presenter.adapters.DiagramsAdapter
 import com.example.financier.presenter.viewModels.MainViewModel
-import com.github.mikephil.charting.components.Legend
-import com.github.mikephil.charting.data.PieData
-import com.github.mikephil.charting.data.PieDataSet
-import com.github.mikephil.charting.data.PieEntry
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.androidbroadcast.vbpd.viewBinding
@@ -40,7 +35,13 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
     private val viewModel: MainViewModel by viewModels { viewModelFactory }
 
-    private val diagramsAdapter = DiagramsAdapter()
+    private val diagramsAdapter = DiagramsAdapter { category, subcategory ->
+        val action = MainFragmentDirections.actionMainFragmentToOperationsInCategoryFragment(
+            category = category,
+            subcategory = subcategory
+        )
+        findNavController().navigate(action)
+    }
 
     private val chartColors: List<Int> = listOf(
     0xFF558EDE.toInt(),  // blue
@@ -72,62 +73,6 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
         viewModel.init()
     }
-
-//    private fun showPieChart() {
-//        val pieChart = binding.pieChart
-//
-//        viewModel.report.observe(viewLifecycleOwner) { report ->
-//            report?.let { r ->
-//                val categories = ArrayList<PieEntry>().apply {
-//                    r.expenseByCategory?.forEach { (category, amount) ->
-//                        add(PieEntry(amount.toFloat(), category))
-//                    }
-//                }
-//
-//                val pieDataSet = PieDataSet(categories, "").apply {
-//                    colors = chartColors
-//                    selectionShift = 8f
-//                    valueTextSize = 13f
-//                    valueTextColor = Color.WHITE
-//                    valueFormatter = PercentFormatter(pieChart)
-//                }
-//
-//                val pieData = PieData(pieDataSet).apply {
-//                    setDrawValues(true)
-//                }
-//
-//                pieChart.apply {
-//                    data = pieData
-//
-//                    isDrawHoleEnabled = true
-//                    setHoleColor(Color.WHITE)
-//                    transparentCircleRadius = 62f
-//
-//                    // Центр
-//                    setCenterTextSize(14f)
-//                    setCenterTextColor(Color.BLACK)
-//                    centerText = "Всего расходов\n${r.totalExpense.toInt()} ₽"
-//                    setDrawEntryLabels(false)
-//
-//                    // Легенда
-//                    legend.apply {
-//                        isEnabled = true
-//                        verticalAlignment = Legend.LegendVerticalAlignment.BOTTOM
-//                        horizontalAlignment = Legend.LegendHorizontalAlignment.CENTER
-//                        orientation = Legend.LegendOrientation.HORIZONTAL
-//                        textSize = 13f
-//                        form = Legend.LegendForm.CIRCLE
-//                        formSize = 12f
-//                        formToTextSpace = 8f
-//                        isWordWrapEnabled = true
-//                    }
-//
-//                    description.isEnabled = false
-//                    invalidate()
-//                }
-//            }
-//        }
-//    }
 
     private fun setupRecyclerView() {
         binding.recyclerDiagrams.apply {
@@ -201,31 +146,23 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         viewModel.diagrams.observe(viewLifecycleOwner) { list ->
             if (list.isNotEmpty()) {
                 diagramsAdapter.submitList(list)
-                binding.recyclerDiagrams.scrollToPosition(0) // прокрутка к первой диаграмме
-            }
-        }
-
-        viewModel.report.observe(viewLifecycleOwner) { report ->
-            report?.let {
-                Toast.makeText(requireContext(),
-                    "Отчёт загружен (${it.totalExpense.toInt()} ₽)",
-                    Toast.LENGTH_SHORT).show()
+                binding.recyclerDiagrams.scrollToPosition(0)
             }
         }
 
         viewModel.uploadState.observe(viewLifecycleOwner) { state ->
-            when (state) {
-                is MainViewModel.UploadState.Loading ->
-                    Toast.makeText(requireContext(), "Загрузка файла...", Toast.LENGTH_SHORT).show()
-
-                is MainViewModel.UploadState.Success ->
-                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
-
-                is MainViewModel.UploadState.Error ->
-                    Toast.makeText(requireContext(), "Ошибка: ${state.message}", Toast.LENGTH_LONG).show()
-
-                else -> {}
-            }
+//            when (state) {
+//                is MainViewModel.UploadState.Loading ->
+//                    Toast.makeText(requireContext(), "Загрузка файла...", Toast.LENGTH_SHORT).show()
+//
+//                is MainViewModel.UploadState.Success ->
+//                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
+//
+//                is MainViewModel.UploadState.Error ->
+//                    Toast.makeText(requireContext(), "Ошибка: ${state.message}", Toast.LENGTH_LONG).show()
+//
+//                else -> {}
+//            }
         }
 
         viewModel.statementId.observe(viewLifecycleOwner) { id ->
@@ -236,7 +173,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
         viewModel.statementStatus.observe(viewLifecycleOwner) { status ->
             if (status == "report_ready") {
-                viewModel.loadReport()           // теперь без параметров
+                viewModel.loadReport()
             }
         }
     }

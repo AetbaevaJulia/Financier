@@ -7,7 +7,8 @@
     app:cardCornerRadius="0dp"
     app:cardElevation="0dp"
     app:strokeWidth="0dp"
-    android:background="@android:color/white">
+    android:backgroundTint="@color/white"
+    android:layout_marginVertical="5dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -30,7 +31,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Перевод между счетами"
-                android:textSize="16sp"
+                android:textSize="14sp"
                 android:textColor="@color/black"
                 android:lineSpacingExtra="2dp" />
 
@@ -39,7 +40,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="01.01.2026"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:textColor="#8E8E8E"
                 android:layout_marginTop="2dp" />
 
@@ -50,7 +51,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="1 200 ₽"
-            android:textSize="18sp"
+            android:textSize="14sp"
             android:textColor="@color/black"
             android:gravity="end" />
 
