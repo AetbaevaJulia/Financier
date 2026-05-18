@@ -9,22 +9,24 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.financier.data.model.DiagramItem
 import com.example.financier.data.model.OperationEntity
+import com.example.financier.data.model.OperationResponse
 import com.example.financier.data.model.Report
 import com.example.financier.domain.operationUseCases.GetOperationsByCategoryUseCase
 import com.example.financier.domain.operationUseCases.GetStatementOperationsUseCase
 import com.example.financier.domain.operationUseCases.PatchFeedbackUseCase
 import com.example.financier.domain.statementUseCases.GetAllStatementsUseCase
-import com.example.financier.domain.reportUseCases.GetLastReportUseCase
-import com.example.financier.domain.reportUseCases.GetReportUseCase
+import com.example.financier.domain.statementUseCases.GetLastReportUseCase
+import com.example.financier.domain.statementUseCases.GetReportUseCase
 import com.example.financier.domain.statementUseCases.GetStatementUseCase
 import com.example.financier.domain.statementUseCases.UploadStatementUseCase
+import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.data.PieEntry
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.util.Date
 import javax.inject.Inject
 import kotlin.math.absoluteValue
-import androidx.core.content.edit
 
 class MainViewModel @Inject constructor(
     private val getLastReportUseCase: GetLastReportUseCase,
@@ -51,40 +53,68 @@ class MainViewModel @Inject constructor(
     val diagrams: LiveData<List<DiagramItem>> = _diagrams
 
     // === Выбранный диапазон дат ===
-    private val _selectedStartDate = MutableLiveData<Long?>()
-    val selectedStartDate: LiveData<Long?>
-        get() = _selectedStartDate
+    private val _selectedStartDate = MutableLiveData<Date>()
+    val selectedStartDate: LiveData<Date> = _selectedStartDate
 
-    private val _selectedEndDate = MutableLiveData<Long?>()
-    val selectedEndDate: LiveData<Long?>
-        get() = _selectedEndDate
+    private val _selectedEndDate = MutableLiveData<Date>()
+    val selectedEndDate: LiveData<Date> = _selectedEndDate
 
     // === Состояние загрузки файла ===
     private val _uploadState = MutableLiveData<UploadState>()
     val uploadState: LiveData<UploadState> = _uploadState
 
-    // === Новые поля для работы с отчётом ===
+    // === Для работы с отчётом ===
     private val _report = MutableLiveData<Report?>()
     val report: LiveData<Report?> get() = _report
 
     private val _uiState = MutableLiveData<UiState>()
     val uiState: LiveData<UiState> get() = _uiState
 
+    private val _operations = MutableLiveData<List<OperationEntity>>()
+    val operations: LiveData<List<OperationEntity>> get() = _operations
+
+    private val _totalAmount = MutableLiveData<Double>(0.0)
+    val totalAmount: LiveData<Double> get() = _totalAmount
+
+    fun loadOperations(category: String, subcategory: String? = null) {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+
+            getOperationsByCategoryUseCase.invoke(
+                category,
+                _selectedStartDate.value?.time ?: 0,
+                _selectedEndDate.value?.time ?: 0
+            ).collectLatest { list ->
+                val filteredList = if (!subcategory.isNullOrBlank() && subcategory != "Без подкатегории") {
+                    list.filter { it.subcategory == subcategory }
+                } else {
+                    list
+                }
+
+                _operations.value = filteredList
+                _totalAmount.value = filteredList.sumOf { it.amount }
+                _uiState.value = UiState.Success // или отдельный Success без report
+            }
+        }
+    }
+
     /**
      * Автоматически загружает тестовую выписку при открытии MainFragment
      */
 
-    fun loadLastReport(){
+    fun loadLastReport() {
         viewModelScope.launch {
+            _uiState.value = UiState.Loading
+
             val reportData = getLastReportUseCase.invoke()
 
             if (reportData != null) {
-                _report.postValue(reportData)
-                _uiState.value = UiState.Success(reportData)
-
+                _report.value = reportData
                 val diagramsList = convertReportToDiagrams(reportData)
-                _diagrams.postValue(diagramsList)
+                _diagrams.value = diagramsList
+                _uiState.value = UiState.Success
             } else {
+                _diagrams.value = emptyList()
                 _uiState.value = UiState.Error("Не удалось загрузить отчёт")
             }
         }
@@ -92,8 +122,11 @@ class MainViewModel @Inject constructor(
 
     fun loadReport(statementId: String? = null) {
         viewModelScope.launch {
+            _uiState.value = UiState.Loading
+
             val id = statementId ?: this@MainViewModel.statementId.value
             if (id.isNullOrBlank()) {
+                _diagrams.value = emptyList()
                 _uiState.value = UiState.Error("Не найден ID выписки")
                 return@launch
             }
@@ -101,15 +134,13 @@ class MainViewModel @Inject constructor(
             val token = getToken()
             val reportData = getReportUseCase.invoke(id, token)
 
-            Log.d("Загруженный репорт", reportData.toString())
-
             if (reportData != null) {
-                _report.postValue(reportData)
-                _uiState.value = UiState.Success(reportData)
-
-                val diagramsList = convertReportToDiagrams(reportData)  // теперь suspend
-                _diagrams.postValue(diagramsList)
+                _report.value = reportData
+                val diagramsList = convertReportToDiagrams(reportData)
+                _diagrams.value = diagramsList
+                _uiState.value = UiState.Success
             } else {
+                _diagrams.value = emptyList()
                 _uiState.value = UiState.Error("Не удалось загрузить отчёт")
             }
         }
@@ -124,7 +155,7 @@ class MainViewModel @Inject constructor(
     private suspend fun convertReportToDiagrams(report: Report): List<DiagramItem> {
         val list = mutableListOf<DiagramItem>()
 
-        val categories = report.expenseByCategory ?: emptyMap()
+        val categories = report.expenseByCategory
 
         if (categories.isEmpty()) {
             list.add(DiagramItem(id = "empty", title = "Нет данных", isMain = true))
@@ -186,12 +217,9 @@ class MainViewModel @Inject constructor(
     /**
      * Обновление выбранного диапазона дат
      */
-    fun setDateRange(start: Long?, end: Long?) {
-        _selectedStartDate.value = start
-        _selectedEndDate.value = end
-
-        sharedPreferences.edit { putLong("selected_start_date", start ?: 0) }
-        sharedPreferences.edit { putLong("selected_end_date", end ?: 0) }
+    fun setDateRange(startDate: Date, endDate: Date) {
+        _selectedStartDate.postValue(startDate)
+        _selectedEndDate.postValue(endDate)
     }
 
     private val _statementId = MutableLiveData<String?>()
@@ -205,41 +233,48 @@ class MainViewModel @Inject constructor(
      */
     fun uploadFile(uri: Uri) {
         viewModelScope.launch {
+            _uiState.value = UiState.Loading
             _uploadState.value = UploadState.Loading
 
             try {
-//                kotlinx.coroutines.delay(1500)
                 val token = getToken()
-
                 val uploadedStatement = uploadStatementUseCase(uri, token)
-                Log.d("Загруженный statement", uploadedStatement.toString())
 
-                _statementId.postValue(uploadedStatement?.statementId.toString())
-                _statementStatus.postValue(uploadedStatement?.status.toString())
+                _statementId.value = uploadedStatement?.statementId?.toString()
+                _statementStatus.value = uploadedStatement?.status?.toString()
 
                 _uploadState.value = UploadState.Success("Файл успешно загружен")
+                // UiState останется Loading до окончания waitingReport
             } catch (e: Exception) {
                 _uploadState.value = UploadState.Error(e.message ?: "Ошибка загрузки файла")
+                _uiState.value = UiState.Error(e.message ?: "Ошибка загрузки")
             }
         }
     }
 
-    fun waitingReport(statementId : String){
+    fun waitingReport(statementId: String) {
         viewModelScope.launch {
-            try{
+            _uiState.value = UiState.Loading
+
+            try {
                 while (_statementStatus.value != "report_ready") {
                     val statement = getStatementUseCase(statementId, getToken())
-                    Log.d("Обновляю статус", "$statementId ${statement?.status}")
-                    if (statement?.status == "report_ready" && _statementStatus.value != "report_ready") {
-                        _statementStatus.postValue("report_ready")
+
+                    if (statement?.status == "report_ready") {
+                        _statementStatus.value = "report_ready"
+                        break
+                    } else if (statement?.status == "failed") {
+                        throw Exception("Статус failed")
                     }
-                    else if (statement?.status == "failed") {
-                        throw Exception("статус failed")
-                    }
+
                     kotlinx.coroutines.delay(3000)
                 }
+
+                // После успешного ожидания — загружаем отчёт
+                loadReport(statementId)
             } catch (e: Exception) {
                 _uploadState.value = UploadState.Error(e.message ?: "Ошибка получения отчета")
+                _uiState.value = UiState.Error(e.message ?: "Ошибка получения отчета")
             }
         }
     }
@@ -264,7 +299,7 @@ class MainViewModel @Inject constructor(
 
     sealed class UiState {
         object Loading : UiState()
-        data class Success(val report: Report) : UiState()
+        object Success : UiState()
         data class Error(val message: String) : UiState()
     }
 }

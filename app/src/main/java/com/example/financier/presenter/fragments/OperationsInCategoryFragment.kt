@@ -13,6 +13,7 @@ import com.example.financier.appComponent
 import com.example.financier.databinding.FragmentOperationsInCategoryBinding
 import com.example.financier.di.viewModel.ViewModelFactory
 import com.example.financier.presenter.adapters.OperationsAdapter
+import com.example.financier.presenter.viewModels.MainViewModel
 import com.example.financier.presenter.viewModels.OperationsInCategoryViewModel
 import dev.androidbroadcast.vbpd.viewBinding
 import javax.inject.Inject
@@ -24,7 +25,7 @@ class OperationsInCategoryFragment : Fragment(R.layout.fragment_operations_in_ca
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
 
-    private val viewModel: OperationsInCategoryViewModel by viewModels { viewModelFactory }
+    private val viewModel: MainViewModel by viewModels { viewModelFactory }
 
     private val operationsAdapter = OperationsAdapter()
 

@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -35,16 +35,6 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
     private val viewModel: MainViewModel by viewModels { viewModelFactory }
 
-    private val dateRangePicker = MaterialDatePicker.Builder.dateRangePicker()
-        .setTitleText("Выберите дату")
-        .setSelection(
-            androidx.core.util.Pair(
-                MaterialDatePicker.todayInUtcMilliseconds(),
-                MaterialDatePicker.todayInUtcMilliseconds() + 7*86400*1000
-            )
-        )
-        .build()
-
     private val diagramsAdapter = DiagramsAdapter { category, subcategory ->
         val action = MainFragmentDirections.actionMainFragmentToOperationsInCategoryFragment(
             category = category,
@@ -53,15 +43,25 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         findNavController().navigate(action)
     }
 
-    private val chartColors: List<Int> = listOf(
-    0xFF558EDE.toInt(),  // blue
-    0xFFED6154.toInt(),  // red
-    0xFFAAB1B9.toInt(),  // grey
-    0xFFA5C26E.toInt(),  // green
-    0xFF9074BE.toInt(),  // purple
-    0xFFFFAA40.toInt(),  // orange
-    0xFF4DB6C9.toInt()   // light_blue
-    )
+    private var loadingDialog: androidx.appcompat.app.AlertDialog? = null
+
+    private fun showLoading(show: Boolean) {
+        if (show) {
+            if (loadingDialog == null) {
+                val builder = MaterialAlertDialogBuilder(requireContext())
+                val view = LayoutInflater.from(requireContext())
+                    .inflate(R.layout.dialog_loading, null)
+
+                builder.setView(view)
+                    .setCancelable(false)
+
+                loadingDialog = builder.create()
+            }
+            loadingDialog?.show()
+        } else {
+            loadingDialog?.dismiss()
+        }
+    }
 
     private val pickFileLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -81,53 +81,40 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         setupAddNewButton()
         setupObservers()
 
-        viewModel.init()
+        if (savedInstanceState == null) {
+            viewModel.init()
+        }
     }
 
     private fun setupRecyclerView() {
         binding.recyclerDiagrams.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = diagramsAdapter
-            setHasFixedSize(true)
         }
     }
 
     private fun setupDatePicker() {
+        binding.dateText.text = "Выбрать даты"
         binding.dateText.setOnClickListener {
-            dateRangePicker.show(childFragmentManager, null)
+            showDateRangePicker()
         }
-
-        dateRangePicker.addOnPositiveButtonClickListener {
-            viewModel.setDateRange(
-                start = it.first,
-                end = it.second
-            )
-        }
-        // Автоматическая установка дат: месяц назад — сегодня
-//        val calendar = Calendar.getInstance()
-//        val endDate = calendar.time
-//        calendar.add(Calendar.MONTH, -1)
-//        val startDate = calendar.time
-//
-//        val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-//        binding.dateText.text = "${dateFormat.format(startDate)} - ${dateFormat.format(endDate)}"
     }
 
-//    private fun showDateRangePicker() {
-//        val picker = MaterialDatePicker.Builder.dateRangePicker().build()
-//
-//        picker.addOnPositiveButtonClickListener { selection ->
-//            val startDate = Date(selection.first ?: System.currentTimeMillis())
-//            val endDate = Date(selection.second ?: System.currentTimeMillis())
-//
-//            val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-//            binding.dateText.text = "${dateFormat.format(startDate)} - ${dateFormat.format(endDate)}"
-//
-//            viewModel.setDateRange(startDate, endDate)
-//        }
-//
-//        picker.show(parentFragmentManager, "date_range_picker")
-//    }
+    private fun showDateRangePicker() {
+        val picker = MaterialDatePicker.Builder.dateRangePicker().build()
+
+        picker.addOnPositiveButtonClickListener { selection ->
+            val startDate = Date(selection.first ?: System.currentTimeMillis())
+            val endDate = Date(selection.second ?: System.currentTimeMillis())
+
+            val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+            binding.dateText.text = "${dateFormat.format(startDate)} - ${dateFormat.format(endDate)}"
+
+            viewModel.setDateRange(startDate, endDate)
+        }
+
+        picker.show(parentFragmentManager, "date_range_picker")
+    }
 
     private fun setupAddNewButton() {
         binding.addNew.setOnClickListener {
@@ -159,26 +146,32 @@ class MainFragment : Fragment(R.layout.fragment_main) {
     }
 
     private fun setupObservers() {
-        viewModel.diagrams.observe(viewLifecycleOwner) { list ->
-            if (list.isNotEmpty()) {
-                diagramsAdapter.submitList(list)
-                binding.recyclerDiagrams.scrollToPosition(0)
+
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is MainViewModel.UiState.Loading -> showLoading(true)
+                else -> showLoading(false)
             }
         }
 
-        viewModel.uploadState.observe(viewLifecycleOwner) { state ->
-//            when (state) {
-//                is MainViewModel.UploadState.Loading ->
-//                    Toast.makeText(requireContext(), "Загрузка файла...", Toast.LENGTH_SHORT).show()
-//
-//                is MainViewModel.UploadState.Success ->
-//                    Toast.makeText(requireContext(), state.message, Toast.LENGTH_LONG).show()
-//
-//                is MainViewModel.UploadState.Error ->
-//                    Toast.makeText(requireContext(), "Ошибка: ${state.message}", Toast.LENGTH_LONG).show()
-//
-//                else -> {}
-//            }
+        // Главная логика отображения
+        viewModel.diagrams.observe(viewLifecycleOwner) { list ->
+            val hasData = !list.isNullOrEmpty()
+
+            binding.recyclerDiagrams.visibility = if (hasData) View.VISIBLE else View.GONE
+            binding.dateText.visibility = if (hasData) View.VISIBLE else View.GONE
+            binding.emptyState.visibility = if (hasData) View.GONE else View.VISIBLE
+
+            if (hasData) {
+                diagramsAdapter.submitList(list)
+            }
+        }
+
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is MainViewModel.UiState.Loading -> showLoading(true)
+                else -> showLoading(false)
+            }
         }
 
         viewModel.statementId.observe(viewLifecycleOwner) { id ->
