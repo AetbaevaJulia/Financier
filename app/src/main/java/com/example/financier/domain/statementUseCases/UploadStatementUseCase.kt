@@ -2,7 +2,9 @@ package com.example.financier.domain.statementUseCases
 
 import android.content.ContentResolver
 import android.net.Uri
+import com.example.financier.data.mappers.toEntity
 import com.example.financier.data.model.UploadStatementResponse
+import com.example.financier.data.repositories.OperationsDatabaseRepository
 import com.example.financier.data.repositories.StatementRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,6 +23,7 @@ interface UploadStatementUseCase {
 
 class UploadStatementUseCaseImpl @Inject constructor(
     private val repository: StatementRepository,
+    private val databaseRepository: OperationsDatabaseRepository,
     private val contentResolver: ContentResolver
 ): UploadStatementUseCase {
     override suspend fun invoke(uri: Uri, token: String): UploadStatementResponse? {
@@ -46,7 +49,20 @@ class UploadStatementUseCaseImpl @Inject constructor(
             var file = MultipartBody.Part.createFormData("file", fileName, requestBody)
 
             // 2. Отправляем файл
-            repository.uploadStatement(file, token)
+            val operations = repository.uploadStatement(file, token)
+
+            operations?.forEach { remoteOperation ->
+                val localOperation = remoteOperation.toEntity()
+                databaseRepository.createOperation(localOperation)
+            }
+
+            if (operations != null)
+            {
+                UploadStatementResponse(operations[0].statementId, "uploading")
+            }
+            else {
+                null
+            }
         }
     }
 }

@@ -1,22 +1,23 @@
 package com.example.financier.domain.reportUseCases
 
 import com.example.financier.data.mappers.toEntity
+import com.example.financier.data.model.AnalyticsRequest
 import com.example.financier.data.model.Report
 import com.example.financier.data.repositories.ReportDatabaseRepository
 import com.example.financier.data.repositories.StatementRepository
 import javax.inject.Inject
 
-interface GetReportUseCase{
-    suspend operator fun invoke(statementId: String, token: String): Report?
+interface GenerateReportUseCase{
+    suspend operator fun invoke(statementId: String, request: AnalyticsRequest?, token: String): Report?
 }
 
-class GetReportUseCaseImpl @Inject constructor(
+class GenerateReportUseCaseImpl @Inject constructor(
     private val repository: StatementRepository,
     private val databaseRepository: ReportDatabaseRepository
-) : GetReportUseCase {
-    override suspend operator fun invoke(statementId: String, token: String): Report? {
+) : GenerateReportUseCase {
+    override suspend operator fun invoke(statementId: String, request: AnalyticsRequest?, token: String): Report? {
 
-        var report = repository.getReport(statementId, token)
+        var report = repository.generateReport(statementId, request, token)
 
         if (report == null) {
             report = repository.generateReport(statementId, null, token = token)

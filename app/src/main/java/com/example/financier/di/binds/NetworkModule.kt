@@ -3,17 +3,36 @@ package com.example.financier.di.binds
 import com.example.financier.data.NetworkService
 import dagger.Module
 import dagger.Provides
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
+import java.util.concurrent.TimeUnit
+import javax.inject.Singleton
 
 @Module
 object NetworkModule {
 
     @Provides
-    fun provideNetworkService(): NetworkService = Retrofit.Builder()
-//        .baseUrl("http://192.168.137.1:8000/api/")
-        .baseUrl("http://10.21.90.107:8000/api/")
+    @Singleton
+    fun provideOkHttpClient(
+
+    ): OkHttpClient {
+        return OkHttpClient.Builder()
+            .connectTimeout(60, TimeUnit.SECONDS)      // Время на установку соединения
+            .readTimeout(120, TimeUnit.SECONDS)        // Время на чтение данных
+            .writeTimeout(120, TimeUnit.SECONDS)       // Время на запись (важно для загрузки файлов)
+            .callTimeout(180, TimeUnit.SECONDS)        // Общий таймаут на весь запрос
+            .retryOnConnectionFailure(true)            // Повторять при ошибках соединения
+            .build()
+    }
+
+    @Provides
+    fun provideNetworkService(
+        okHttpClient: OkHttpClient
+    ): NetworkService = Retrofit.Builder()
+        .baseUrl("http://10.0.2.2:8000/api/")
+        .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
         .create()

@@ -1,5 +1,6 @@
 package com.example.financier.data
 
+import com.example.financier.data.model.AnalyticsRequest
 import com.example.financier.data.model.AuthResponse
 import com.example.financier.data.model.FeedbackRequest
 import com.example.financier.data.model.LoginRequest
@@ -40,7 +41,7 @@ interface NetworkService {
     suspend fun uploadStatement(
         @Part file: MultipartBody.Part,
         @Header("Authorization") authorization: String
-    ): Response<UploadStatementResponse>
+    ): Response<List<OperationResponse>>
 
     @GET("statements")
     suspend fun listStatements(
@@ -62,6 +63,13 @@ interface NetworkService {
     @GET("statements/{statement_id}/report")
     suspend fun getReport(
         @Path("statement_id") statementId: String,
+        @Header("Authorization") authorization: String
+    ): Response<Report>
+
+    @GET("statements/{statement_id}/analytics")
+    suspend fun generateReport(
+        @Path("statement_id") statementId: String,
+        @Body request: AnalyticsRequest?,
         @Header("Authorization") authorization: String
     ): Response<Report>
 

@@ -23,7 +23,6 @@ class GetStatementOperationsUseCaseImpl @Inject constructor(
 
         operations?.forEach { remoteOperation ->
             val localOperation = remoteOperation.toEntity()
-
             databaseRepository.createOperation(localOperation)
         }
 

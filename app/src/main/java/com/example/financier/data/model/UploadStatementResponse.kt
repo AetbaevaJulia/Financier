@@ -9,5 +9,5 @@ data class UploadStatementResponse(
     @SerializedName("statement_id")
     val statementId: UUID,
     @SerializedName("status")
-    val status: StatementStatus
+    val status: String
 )
