@@ -1,18 +1,18 @@
 package com.example.financier.data.model
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
-    tableName = OperationEntity.TABLE
+    tableName = OperationEntity.TABLE,
+    indices = [Index(value = ["dateTime", "authorizationCode"], unique = true)]
 )
 data class OperationEntity (
     @PrimaryKey
     val operationId: String,
     val statementId: String,
-    val operationDate: String,
-    val postingDate: String? = null,
-    val time: String? = null,
+    val dateTime: Long,
     val authorizationCode: String? = null,
     val amount: Double,
     val currency: String = "RUB",

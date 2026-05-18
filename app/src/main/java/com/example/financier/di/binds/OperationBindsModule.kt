@@ -14,6 +14,8 @@ import com.example.financier.domain.operationUseCases.DeleteOperationUseCase
 import com.example.financier.domain.operationUseCases.DeleteOperationUseCaseImpl
 import com.example.financier.domain.operationUseCases.GetOperationsByCategoryUseCase
 import com.example.financier.domain.operationUseCases.GetOperationsByCategoryUseCaseImpl
+import com.example.financier.domain.operationUseCases.GetOperationsBySubcategoryUseCase
+import com.example.financier.domain.operationUseCases.GetOperationsBySubcategoryUseCaseImpl
 import com.example.financier.domain.operationUseCases.GetOperationsFromToUseCase
 import com.example.financier.domain.operationUseCases.GetOperationsFromToUseCaseImpl
 import com.example.financier.domain.operationUseCases.GetOperationsUseCase
@@ -43,6 +45,10 @@ interface OperationBindsModule {
     @Binds
     @Singleton
     fun bindGetOperationsByCategoryUseCase(impl: GetOperationsByCategoryUseCaseImpl): GetOperationsByCategoryUseCase
+
+    @Binds
+    @Singleton
+    fun bindGetOperationsBySubcategoryUseCase(impl: GetOperationsBySubcategoryUseCaseImpl): GetOperationsBySubcategoryUseCase
 
     @Binds
     @Singleton
