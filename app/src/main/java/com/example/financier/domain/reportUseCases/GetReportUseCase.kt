@@ -19,7 +19,7 @@ class GetReportUseCaseImpl @Inject constructor(
         var report = repository.getReport(statementId, token)
 
         if (report == null) {
-            report = repository.generateReport(statementId, null, token = token)
+            report = repository.getReport(statementId, token = token)
         }
 
         if (report != null) {

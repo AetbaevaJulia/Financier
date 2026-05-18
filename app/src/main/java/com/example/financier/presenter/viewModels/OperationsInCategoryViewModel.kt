@@ -21,17 +21,17 @@ class OperationsInCategoryViewModel @Inject constructor(
     val totalAmount: LiveData<Double> get() = _totalAmount
 
     fun loadOperations(category: String, subcategory: String? = null) {
-        viewModelScope.launch {
-            getOperationsByCategoryUseCase.invoke(category).collectLatest { list ->
-                val filteredList = if (!subcategory.isNullOrBlank() && subcategory != "Без подкатегории") {
-                    list.filter { it.subcategory == subcategory }
-                } else {
-                    list
-                }
-
-                _operations.value = filteredList
-                _totalAmount.value = filteredList.sumOf { it.amount }
-            }
-        }
+//        viewModelScope.launch {
+//            getOperationsByCategoryUseCase.invoke(category).collectLatest { list ->
+//                val filteredList = if (!subcategory.isNullOrBlank() && subcategory != "Без подкатегории") {
+//                    list.filter { it.subcategory == subcategory }
+//                } else {
+//                    list
+//                }
+//
+//                _operations.value = filteredList
+//                _totalAmount.value = filteredList.sumOf { it.amount }
+//            }
+//        }
     }
 }
