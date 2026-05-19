@@ -29,10 +29,20 @@
             android:id="@+id/add_new"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.35"
+            android:layout_weight="0.25"
             android:minHeight="50dp"
             android:clickable="true"
             android:src="@drawable/baseline_add_box_24"
+            app:tint="@color/accent" />
+
+        <ImageView
+            android:id="@+id/btn_toggle_chart"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:minHeight="50dp"
+            android:clickable="true"
+            android:src="@drawable/baseline_pie_chart_24"
             app:tint="@color/accent" />
     </LinearLayout>
 

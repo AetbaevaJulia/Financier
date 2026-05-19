@@ -43,6 +43,8 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         findNavController().navigate(action)
     }
 
+    var mainDiagramsIsPie = true
+
     private var loadingDialog: androidx.appcompat.app.AlertDialog? = null
 
     private fun showLoading(show: Boolean) {
@@ -80,6 +82,15 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         setupDatePicker()
         setupAddNewButton()
         setupObservers()
+
+        binding.btnToggleChart.setOnClickListener {
+            if(!mainDiagramsIsPie) {
+                binding.btnToggleChart.setImageResource(R.drawable.outline_bar_chart_24)
+            } else{
+                binding.btnToggleChart.setImageResource(R.drawable.baseline_pie_chart_24)
+            }
+            viewModel.toggleMainChartType()
+        }
 
         if (savedInstanceState == null) {
             viewModel.init()
@@ -184,6 +195,16 @@ class MainFragment : Fragment(R.layout.fragment_main) {
             if (status == "report_ready") {
                 viewModel.loadReport()
             }
+        }
+
+        // Переключение вида главных диаграмм
+        viewModel.isMainPieChart.observe(viewLifecycleOwner) { isPie ->
+            diagramsAdapter.isMainPieChart = isPie
+            mainDiagramsIsPie = isPie
+
+            // Обновляем обе главные диаграммы
+            diagramsAdapter.notifyItemChanged(0) // Расходы по категориям
+            diagramsAdapter.notifyItemChanged(1) // Самые большие траты
         }
     }
 
