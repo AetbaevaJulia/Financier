@@ -200,6 +200,26 @@ class MainViewModel @Inject constructor(
             )
         )
 
+        // === ВТОРАЯ ДИАГРАММА: Самые большие траты (Top Merchants) ===
+        val topMerchants = report.topMerchants ?: emptyList()
+        if (topMerchants.isNotEmpty()) {
+            val limitedTop = topMerchants.take(10)
+
+            val topPieEntries = limitedTop.map { merchant ->
+                PieEntry(merchant.amount.toFloat(), merchant.merchant)
+            }
+
+            list.add(
+                DiagramItem(
+                    id = "top_merchants",
+                    title = "Самые большие траты",
+                    isMain = true,
+                    pieData = topPieEntries,
+                    totalAmount = limitedTop.sumOf { it.amount }
+                )
+            )
+        }
+
         // 2. Столбчатые диаграммы по подкатегориям
         Log.d("diagramsList", "Столбчатые диаграммы ${categories.toString()}")
         for ((category, _) in categories) {
@@ -316,6 +336,15 @@ class MainViewModel @Inject constructor(
                 throw Exception("Беда с токеном")
             }
             return token
+    }
+
+    private val _isMainPieChart = MutableLiveData<Boolean>(true)
+    val isMainPieChart: LiveData<Boolean> get() = _isMainPieChart
+
+    fun toggleMainChartType() {
+        Log.d("MainViewModel", isMainPieChart.value.toString())
+        _isMainPieChart.value = _isMainPieChart.value?.not() ?: true
+        Log.d("MainViewModel", isMainPieChart.value.toString())
     }
 
     // Состояния загрузки файла
