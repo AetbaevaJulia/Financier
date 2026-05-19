@@ -29,6 +29,9 @@ class AuthViewModel @Inject constructor(
             if (email != null || password != null) {
                 login(email!!, password!!)
             }
+            else {
+                _authState.value = AuthState.Error()
+            }
         }
     }
 
@@ -96,6 +99,6 @@ class AuthViewModel @Inject constructor(
         object Idle : AuthState()
         object Loading : AuthState()
         data class Success(val response: AuthResponse) : AuthState()
-        data class Error(val message: String) : AuthState()
+        data class Error(val message: String? = null) : AuthState()
     }
 }

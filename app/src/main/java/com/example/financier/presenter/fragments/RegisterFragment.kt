@@ -104,17 +104,23 @@ class RegisterFragment : Fragment(R.layout.fragment_registration) {
         binding.editTextPassword.isEnabled = !isLoading
     }
 
-    private fun showError(message: String) {
-        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+    private fun showError(message: String?) {
+        if (message != null) {
+            Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
 
-        when {
-            message.contains("409", ignoreCase = true) || message.contains("already exists", ignoreCase = true) -> {
-                binding.editTextEmail.error = "Пользователь с таким email уже существует"
-                binding.editTextEmail.requestFocus()
-            }
-            message.contains("validation", ignoreCase = true) -> {
-                binding.editTextEmail.error = "Некорректный email"
-                binding.editTextEmail.requestFocus()
+            when {
+                message.contains("409", ignoreCase = true) || message.contains(
+                    "already exists",
+                    ignoreCase = true
+                ) -> {
+                    binding.editTextEmail.error = "Пользователь с таким email уже существует"
+                    binding.editTextEmail.requestFocus()
+                }
+
+                message.contains("validation", ignoreCase = true) -> {
+                    binding.editTextEmail.error = "Некорректный email"
+                    binding.editTextEmail.requestFocus()
+                }
             }
         }
     }

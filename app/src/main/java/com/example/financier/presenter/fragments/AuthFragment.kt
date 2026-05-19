@@ -100,24 +100,32 @@ class AuthFragment : Fragment(R.layout.fragment_auth) {
         binding.editTextPassword.isEnabled = !isLoading
     }
 
-    private fun showError(message: String) {
-        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+    private fun showError(message: String?) {
+        if (message != null) {
+            Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
 
-        when {
-            message.contains("401", ignoreCase = true) ||
-                    message.contains("unauthorized", ignoreCase = true) ||
-                    message.contains("invalid credentials", ignoreCase = true) -> {
-                binding.editTextPassword.error = "Неверный email или пароль"
-                binding.editTextPassword.requestFocus()
-                binding.editTextPassword.text?.clear()
-            }
-            message.contains("validation", ignoreCase = true) -> {
-                binding.editTextEmail.error = "Некорректный email"
-                binding.editTextEmail.requestFocus()
-            }
-            message.contains("network", ignoreCase = true) ||
-                    message.contains("connection", ignoreCase = true) -> {
-                Toast.makeText(requireContext(), "Проверьте подключение к интернету", Toast.LENGTH_LONG).show()
+            when {
+                message.contains("401", ignoreCase = true) ||
+                        message.contains("unauthorized", ignoreCase = true) ||
+                        message.contains("invalid credentials", ignoreCase = true) -> {
+                    binding.editTextPassword.error = "Неверный email или пароль"
+                    binding.editTextPassword.requestFocus()
+                    binding.editTextPassword.text?.clear()
+                }
+
+                message.contains("validation", ignoreCase = true) -> {
+                    binding.editTextEmail.error = "Некорректный email"
+                    binding.editTextEmail.requestFocus()
+                }
+
+                message.contains("network", ignoreCase = true) ||
+                        message.contains("connection", ignoreCase = true) -> {
+                    Toast.makeText(
+                        requireContext(),
+                        "Проверьте подключение к интернету",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
         }
     }

@@ -12,7 +12,7 @@ import java.util.UUID
 fun OperationResponse.toEntity(): OperationEntity = OperationEntity(
     operationId = operationId.toString(),
     statementId = statementId.toString(),
-    dateTime = Timestamp.valueOf("$postingDate ${time}:00").time,
+    dateTime = Timestamp.valueOf("$operationDate ${time}:00").time,
     authorizationCode = authorizationCode,
     amount = amount,
     currency = currency,

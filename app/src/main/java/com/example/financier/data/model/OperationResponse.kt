@@ -24,15 +24,15 @@ data class OperationResponse(
     @SerializedName("raw_description")
     val rawDescription: String,
     @SerializedName("normalized_description")
-    val normalizedDescription: String,
+    var normalizedDescription: String,
     @SerializedName("bank_category")
     val bankCategory: String? = null,
     @SerializedName("merchant")
     val merchant: String? = null,
     @SerializedName("category")
-    val category: String = "other",
+    var category: String = "Прочее",
     @SerializedName("subcategory")
-    val subcategory: String? = null,
+    var subcategory: String? = null,
     @SerializedName("operation_type")
     val operationType: String,
     @SerializedName("balance_after")

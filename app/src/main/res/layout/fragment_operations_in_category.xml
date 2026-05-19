@@ -24,17 +24,17 @@
             android:src="@drawable/ic_arrow_back"
             android:padding="12dp" />
 
-        <TextView
-            android:id="@+id/date"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:clickable="true"
-            android:layout_marginHorizontal="20dp"
-            android:gravity="center"
-            android:text="Выберите дату"
-            android:textSize="16sp"
-            android:textColor="@color/black" />
+<!--        <TextView-->
+<!--            android:id="@+id/date"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:minHeight="48dp"-->
+<!--            android:clickable="true"-->
+<!--            android:layout_marginHorizontal="20dp"-->
+<!--            android:gravity="center"-->
+<!--            android:text="Выберите дату"-->
+<!--            android:textSize="16sp"-->
+<!--            android:textColor="@color/black" />-->
     </LinearLayout>
 
     <!-- Основная область -->

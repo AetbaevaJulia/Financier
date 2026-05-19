@@ -104,12 +104,6 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         val picker = MaterialDatePicker.Builder.dateRangePicker().build()
 
         picker.addOnPositiveButtonClickListener { selection ->
-            val startDate = Date(selection.first ?: System.currentTimeMillis())
-            val endDate = Date(selection.second ?: System.currentTimeMillis())
-
-            val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-            binding.dateText.text = "${dateFormat.format(startDate)} - ${dateFormat.format(endDate)}"
-
             viewModel.setDateRange(selection.first, selection.second)
         }
 
@@ -146,6 +140,14 @@ class MainFragment : Fragment(R.layout.fragment_main) {
     }
 
     private fun setupObservers() {
+
+        viewModel.selectedDateRange.observe(viewLifecycleOwner) { dates ->
+            val startDate = Date(dates[0] ?: System.currentTimeMillis())
+            val endDate = Date(dates[1] ?: System.currentTimeMillis())
+
+            val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+            binding.dateText.text = "${dateFormat.format(startDate)} - ${dateFormat.format(endDate)}"
+        }
 
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             when (state) {

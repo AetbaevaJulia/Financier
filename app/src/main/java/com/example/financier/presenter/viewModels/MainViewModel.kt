@@ -28,6 +28,7 @@ import java.util.Date
 import javax.inject.Inject
 import kotlin.math.absoluteValue
 import androidx.core.content.edit
+import java.sql.Timestamp
 
 class MainViewModel @Inject constructor(
     private val getLastReportUseCase: GetLastReportUseCase,
@@ -46,6 +47,13 @@ class MainViewModel @Inject constructor(
             if(_report.value == null){
                 loadLastReport()
             }
+
+            val savedStart = sharedPreferences.getLong("selected_start_date", 0)
+            val savedEnd = sharedPreferences.getLong("selected_end_date", 0)
+
+            if (savedStart != 0L && savedEnd != 0L) {
+                _selectedDateRange.postValue(listOf(savedStart, savedEnd))
+            }
         }
     }
 
@@ -54,11 +62,9 @@ class MainViewModel @Inject constructor(
     val diagrams: LiveData<List<DiagramItem>> = _diagrams
 
     // === Выбранный диапазон дат ===
-    private val _selectedStartDate = MutableLiveData<Date>()
-    val selectedStartDate: LiveData<Date> = _selectedStartDate
+    private val _selectedDateRange = MutableLiveData<List<Long?>>()
+    val selectedDateRange: LiveData<List<Long?>> = _selectedDateRange
 
-    private val _selectedEndDate = MutableLiveData<Date>()
-    val selectedEndDate: LiveData<Date> = _selectedEndDate
 
     // === Состояние загрузки файла ===
     private val _uploadState = MutableLiveData<UploadState>()
@@ -77,27 +83,27 @@ class MainViewModel @Inject constructor(
     private val _totalAmount = MutableLiveData<Double>(0.0)
     val totalAmount: LiveData<Double> get() = _totalAmount
 
-    fun loadOperations(category: String, subcategory: String? = null) {
-        viewModelScope.launch {
-            _uiState.value = UiState.Loading
-
-            getOperationsByCategoryUseCase.invoke(
-                category,
-                _selectedStartDate.value?.time ?: 0,
-                _selectedEndDate.value?.time ?: 0
-            ).collectLatest { list ->
-                val filteredList = if (!subcategory.isNullOrBlank() && subcategory != "Без подкатегории") {
-                    list.filter { it.subcategory == subcategory }
-                } else {
-                    list
-                }
-
-                _operations.value = filteredList
-                _totalAmount.value = filteredList.sumOf { it.amount }
-                _uiState.value = UiState.Success // или отдельный Success без report
-            }
-        }
-    }
+//    fun loadOperations(category: String, subcategory: String? = null) {
+//        viewModelScope.launch {
+//            _uiState.value = UiState.Loading
+//
+//            getOperationsByCategoryUseCase.invoke(
+//                category,
+//                _selectedStartDate.value?.time ?: 0,
+//                _selectedEndDate.value?.time ?: 0
+//            ).collectLatest { list ->
+//                val filteredList = if (!subcategory.isNullOrBlank() && subcategory != "Без подкатегории") {
+//                    list.filter { it.subcategory == subcategory }
+//                } else {
+//                    list
+//                }
+//
+//                _operations.value = filteredList
+//                _totalAmount.value = filteredList.sumOf { it.amount }
+//                _uiState.value = UiState.Success // или отдельный Success без report
+//            }
+//        }
+//    }
 
     /**
      * Автоматически загружает тестовую выписку при открытии MainFragment
@@ -114,6 +120,13 @@ class MainViewModel @Inject constructor(
                 val diagramsList = convertReportToDiagrams(reportData)
                 _diagrams.value = diagramsList
                 _uiState.value = UiState.Success
+
+                val transactions = getStatementOperationsUseCase.invoke(reportData.statementId, getToken())
+
+                val startDate = Timestamp.valueOf("${transactions?.last()?.operationDate} 00:00:00").time
+                val endDate = Timestamp.valueOf("${transactions?.first()?.operationDate} 00:00:00").time
+
+                setDateRange(startDate, endDate)
             } else {
                 _diagrams.value = emptyList()
                 _uiState.value = UiState.Error("Не удалось загрузить отчёт")
@@ -137,9 +150,18 @@ class MainViewModel @Inject constructor(
 
             if (reportData != null) {
                 _report.value = reportData
+                Log.d("diagramsList", "Вызываю")
                 val diagramsList = convertReportToDiagrams(reportData)
+                Log.d("diagramsList", "Вызов закончился")
                 _diagrams.value = diagramsList
                 _uiState.value = UiState.Success
+
+                val transactions = getStatementOperationsUseCase.invoke(reportData.statementId, token)
+
+                val startDate = Timestamp.valueOf("${transactions?.last()?.operationDate} 00:00:00").time
+                val endDate = Timestamp.valueOf("${transactions?.first()?.operationDate} 00:00:00").time
+
+                setDateRange(startDate, endDate)
             } else {
                 _diagrams.value = emptyList()
                 _uiState.value = UiState.Error("Не удалось загрузить отчёт")
@@ -179,6 +201,7 @@ class MainViewModel @Inject constructor(
         )
 
         // 2. Столбчатые диаграммы по подкатегориям
+        Log.d("diagramsList", "Столбчатые диаграммы ${categories.toString()}")
         for ((category, _) in categories) {
             val subcategories = getSubcategories(category, report.statementId)
             list.add(
@@ -219,10 +242,12 @@ class MainViewModel @Inject constructor(
      * Обновление выбранного диапазона дат
      */
     fun setDateRange(startDate: Long?, endDate: Long?) {
-//        _selectedStartDate.postValue(startDate)
-//        _selectedEndDate.postValue(endDate)
-        sharedPreferences.edit { putLong("selected_start_date", startDate ?: 0) }
-        sharedPreferences.edit { putLong("selected_end_date", endDate ?: 0) }
+        viewModelScope.launch {
+            _selectedDateRange.postValue(listOf(startDate, endDate))
+
+            sharedPreferences.edit { putLong("selected_start_date", startDate ?: 0) }
+            sharedPreferences.edit { putLong("selected_end_date", endDate ?: 0) }
+        }
     }
 
     private val _statementId = MutableLiveData<String?>()
@@ -263,6 +288,7 @@ class MainViewModel @Inject constructor(
                 while (_statementStatus.value != "report_ready") {
                     val statement = getStatementUseCase(statementId, getToken())
 
+                    Log.d("Обновляю статус", "${statement?.statementId} = ${statement?.status}")
                     if (statement?.status == "report_ready") {
                         _statementStatus.value = "report_ready"
                         break
@@ -270,7 +296,7 @@ class MainViewModel @Inject constructor(
                         throw Exception("Статус failed")
                     }
 
-                    kotlinx.coroutines.delay(3000)
+                    kotlinx.coroutines.delay(5000)
                 }
 
                 // После успешного ожидания — загружаем отчёт

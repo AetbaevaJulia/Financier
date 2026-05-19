@@ -1,5 +1,6 @@
 package com.example.financier.data.repositories
 
+import android.util.Log
 import com.example.financier.data.NetworkService
 import com.example.financier.data.model.AnalyticsRequest
 import com.example.financier.data.model.OperationResponse
@@ -61,7 +62,9 @@ class StatementRepositoryImpl @Inject constructor(
         return try {
             val response: Response<Report> = service.getReport(statementId, token)
             if (response.isSuccessful) {
-                response.body()
+                val report = response.body()
+                report?.expenseByCategory = report.expenseByCategory.mapKeys {it.key.replaceFirstChar { char -> char.uppercase() }}
+                report
             } else {
                 null
             }
@@ -79,7 +82,9 @@ class StatementRepositoryImpl @Inject constructor(
         return try {
             val response: Response<Report> = service.generateReport(statementId, request, token)
             if (response.isSuccessful) {
-                response.body()
+                val report = response.body()
+                report?.expenseByCategory = report.expenseByCategory.mapKeys {it.key.replaceFirstChar { char -> char.uppercase() }}
+                report
             } else {
                 null
             }

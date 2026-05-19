@@ -13,6 +13,7 @@ import com.example.financier.presenter.fragments.MainFragment
 import com.example.financier.presenter.fragments.OperationsInCategoryFragment
 import com.example.financier.presenter.fragments.RegisterFragment
 import com.example.financier.presenter.fragments.RegularOperationsFragment
+import com.example.financier.presenter.fragments.StartFragment
 import dagger.BindsInstance
 import dagger.Component
 import dagger.Module
@@ -29,6 +30,7 @@ abstract class AppComponent {
     abstract fun inject(fragment: RegularOperationsFragment)
     abstract fun inject(fragment: AuthFragment)
     abstract fun inject(fragment: RegisterFragment)
+    abstract fun inject(fragment: StartFragment)
 
     @Component.Builder
     interface Builder {

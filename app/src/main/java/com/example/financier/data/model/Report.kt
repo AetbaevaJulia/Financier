@@ -14,7 +14,7 @@ data class Report(
     @SerializedName("net_balance")
     val netBalance: Double,
     @SerializedName("expense_by_category")
-    val expenseByCategory: Map<String, Double>,
+    var expenseByCategory: Map<String, Double>,
     @SerializedName("top_merchants")
     val topMerchants: List<TopMerchant>,
     @SerializedName("recurring_payments")

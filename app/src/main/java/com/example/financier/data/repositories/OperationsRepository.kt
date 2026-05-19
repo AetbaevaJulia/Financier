@@ -20,7 +20,16 @@ class OperationsRepositoryImpl @Inject constructor(
         return try {
             val response: Response<List<OperationResponse>> = service.getOperations(statementId, token)
             if (response.isSuccessful) {
-                response.body()
+                val operations = response.body()
+                operations?.map {
+                    val index = it.normalizedDescription.indexOf('*') + 4
+                    it.normalizedDescription = it.normalizedDescription.substring(0, index)
+                    it.category = it.category.replaceFirstChar { char -> char.uppercase() }
+                    it.subcategory = it.subcategory?.replaceFirstChar { char -> char.uppercase() }
+
+                }
+
+                operations
             } else {
                 null
             }
